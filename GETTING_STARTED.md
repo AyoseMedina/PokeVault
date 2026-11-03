@@ -13,9 +13,9 @@ cd PokeVault
 
 ## Phones and tablets
 
-Open your deployment URL and use **Menú** to reach all six sections. Import files with your device’s file picker and save downloads using **Descargar archivo** (Download file). To organize boxes, select Pokémon and tap **Mover de caja** (Move to box); dragging is optional.
+Open your deployment URL and use **Menú** to reach every section (including **Cuenta**, Account, with Docker). Import files with your device’s file picker and save downloads using **Descargar archivo** (Download file). To organize boxes, select Pokémon and tap **Mover de caja** (Move to box); dragging is optional.
 
-Each device’s browser stores its own bank. To move it from desktop to phone, export a `.pvault` in **Copias de seguridad** (Backups), then restore it on the phone. Sign-in does not synchronize banks. `localhost` only works on the same computer; on your phone, use the reachable URL of your Nginx deployment.
+With Docker the bank is **encrypted on the server**: sign in from phone or computer and you see the same bank. If two devices change something at once, the second is asked to reload. With `iniciar.py` each browser keeps its own bank (use a `.pvault` to move it). `localhost` only works on the same computer; on your phone, use the reachable URL of your Nginx deployment.
 
 ## Importing and moving saves
 
@@ -226,9 +226,9 @@ variables and recreate the container.
 
 To switch from local to your proxy, keep credentials, select `docker-compose.yml`
 and configure the HTTPS origin and proxy IP. For Caddy, use `compose.cloud.yaml`
-and configure its domain. Export `.pvault` first: changing protocol, domain/IP, port or
-browser profile changes visible storage. Restore it at the new address.
-Sign-in does not synchronize or encrypt IndexedDB.
+and configure its domain. Bank and account live on the `pokevault_data` volume:
+keep the volume and the same `POKEVAULT_DATA_KEY`. To move the server to another
+machine, copy the volume (see "Server-side bank") or export a `.pvault` and restore it.
 
 ### Inspect or stop
 

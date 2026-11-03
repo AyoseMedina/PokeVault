@@ -3,167 +3,193 @@
 <p align="center"><a href="README.md">Español</a> · <strong>English</strong></p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-191b22" alt="GPL-3.0 license"></a>
-  <img src="https://img.shields.io/badge/Pok%C3%A9mon-generations_I%E2%80%93V-ef4054?labelColor=191b22" alt="Generations I through V">
+  <img src="https://img.shields.io/badge/Pok%C3%A9mon-generations_I%E2%80%93V-ef4054?labelColor=191b22" alt="Generations I to V">
   <a href="GETTING_STARTED.md#docker-and-portainer-from-github"><img src="https://img.shields.io/badge/deploy-Docker_%2B_Portainer-191b22" alt="Docker and Portainer"></a>
 </p>
 
 # PokéVault · Your classic HOME
 
-A personal bank for collecting, organizing and preparing moves of your generation I–V Pokémon, designed for R36S / ArkOS. **Your save files are processed and stored in your browser.** No save uploads, analytics or JavaScript runtime dependencies.
+A personal bank to gather, organize and **move** your Pokémon between generation
+I–V saves, built for R36S / ArkOS and other emulators. It reads and writes battery
+saves (`.sav`, `.srm`, `.dsv`) with validation before and after, and prepares a
+package to copy to the SD card. This is an unofficial personal project.
 
-The code is public and you can host the application on your own computer or server. Docker includes **personal sign-in validated server-side**, and Portainer deployment uses your existing Nginx with internal port 8080. Save files are generated locally and installed on the console manually. The bank interface is in Spanish; sign-in and documentation support Spanish and English. Access-server dependencies are separate from browser code.
+Two ways to use it:
 
-**[Get started](GETTING_STARTED.md) · [Docker and Portainer](GETTING_STARTED.md#docker-and-portainer-from-github) · [Changelog](CHANGELOG.en.md) · [Contribute](CONTRIBUTING.md#english)**
+- **Docker / Portainer (recommended):** personal sign-in, an email-enabled account
+  and the whole bank **encrypted on your server** (`pokevault_data` volume), the
+  same on phone and computer.
+- **Local mode without sign-in (`iniciar.py`):** for development; the bank lives in
+  the browser (IndexedDB).
 
-## What you can do
+Saves are parsed and written **in your browser**; the server stores, validates and
+serves the encrypted bank. No analytics or external services, except the SMTP
+server you configure for email. The bank interface is in Spanish; sign-in and
+documentation are in Spanish and English.
+
+**[Getting started](GETTING_STARTED.md) · [Docker and Portainer](GETTING_STARTED.md#docker-and-portainer-from-github) · [Changelog](CHANGELOG.en.md) · [Contributing](CONTRIBUTING.md#english)**
+
+## Features
 
 | Feature | Description |
 | --- | --- |
-| Import adventures | Read parties and boxes from 16 games, check structures and checksums, and preserve original bytes with SHA-256. |
-| Organize your bank | Create virtual boxes with 30 slots, search, filter, sort, favorite Pokémon and add notes. Bank organization does not alter the save's boxes. |
-| Move Pokémon | Remove them from source outputs and insert them into empty destination slots, with reviewed evolutions and Pokédex updates. |
-| Keep backups | Export a portable `.pvault` bank, merge backups, and restore the last 25 organization snapshots. |
-| Install with context | Download a ZIP with originals, output, manifest and manual R36S / ArkOS instructions. |
-| Explore first | Try a demo with synthetic, non-playable data before importing your own saves. |
-| Read the Pokédex | Actual seen/caught flags per save, search/filter and exact-edition descriptions; [coverage and language limitations](docs/POKEDEX.md#english). |
-| Protect access | ES/EN sign-in, scrypt password hashes, expiring sessions, throttling and logout without deleting the bank. |
-
-The interface and sign-in use a red, white and charcoal Poké Ball palette.
-
-The interface adapts to phones and tablets: a menu with every section, touch controls, boxes, Pokédex and full-width review/export screens. To move Pokémon without dragging, tap their selection buttons and choose **Mover de caja** (Move to box).
-
-
-The bank stores each original once per hash. Demo mode cannot replace a real
-bank; unreadable saves remain quarantined and downloadable. Backups shows
-persistence/quota and reminds you to export `.pvault` after changes or seven days.
-The browser decides persistence; it does not replace an external backup.
-`.pvault` v2 includes originals, backups and history; v1 files remain readable.
-[Migration, recovery and testing](docs/VALIDATION.md#english).
+| Import adventures | Party and boxes from 16 games, with structure and checksums verified and original bytes kept with SHA-256. |
+| Organize your bank | 30-slot virtual boxes, search, filters, sorting, favorites and notes, without changing the save's boxes. |
+| See your Pokémon | Black/White animated sprites, shiny when they are; static images when the system asks for reduced motion. |
+| Move Pokémon | They leave the source and enter the destination like a real trade: trade evolution, items, destination Pokédex and clone prevention. [Policy](docs/MOVE_TRANSFER.md). |
+| Animations | Each Pokémon's journey and evolution when the package is prepared; replayable from history and shown in the demo. [Details](docs/ANIMATIONS.md). |
+| Pokédex | Real seen/caught flags per save and descriptions: exact English text of the edition, or Spanish from a named later edition. [Coverage](docs/POKEDEX.md). |
+| Server-side bank | AES-256-GCM, revisions with cross-device conflict control and 50 restorable versions. [Design](docs/SERVER_VAULT.md). |
+| Account and email | Password change and link-based recovery, security notices and optional messages (weekly digest, anniversaries, moves, backup reminder). [Details](docs/ACCOUNT_EMAIL.md). |
+| Backups | Portable `.pvault` with originals, history and consumed versions; organization restore points. |
+| Try it first | Demo with synthetic, non-playable data, including the trade and evolution animation. |
 
 ## Quick start
 
 ```bash
 git clone https://github.com/AyoseMedina/PokeVault.git
 cd PokeVault
-```
-
-[Create your credentials](GETTING_STARTED.md#create-your-credentials-once) and save them in `.env` or Portainer. There is no default password. Then:
-
-```bash
+node server/create-credentials.mjs --write-env   # username, hash, session secret and bank key
 docker compose up -d --build
 ```
 
-Open **http://localhost:8080** on the Docker computer.
+Open **http://localhost:8080** on the Docker host. There is no default password.
+Without local Node, [generate credentials with Docker](GETTING_STARTED.md#create-your-credentials-once).
 
-For Portainer: repository `https://github.com/AyoseMedina/PokeVault`, reference `refs/heads/main`, **Docker Standalone**. Use **`docker-compose.yml`** for your Nginx: just the application, no host ports or preconfigured external networks. You connect the proxy network in Portainer. Set credentials, `POKEVAULT_ORIGIN` and `POKEVAULT_TRUST_PROXY`. Local `compose.yaml` and optional Caddy `compose.cloud.yaml` remain available. Follow the [deployment guide](GETTING_STARTED.md#create-the-stack).
+> **Keep `POKEVAULT_DATA_KEY` outside the server** (password manager). It encrypts
+> your bank: losing it loses the bank, even with volume backups.
 
-The original static mode remains available for local development **without sign-in**: run `py iniciar.py` on Windows or `python3 iniciar.py` on Linux/macOS and open **http://127.0.0.1:8000**, without installing packages. Do not expose it to the Internet.
+**Portainer with your Nginx:** repository `https://github.com/AyoseMedina/PokeVault`,
+reference `refs/heads/main`, **Docker Standalone** and `docker-compose.yml` (no host
+ports; you connect the proxy network). Required: credentials, `POKEVAULT_DATA_KEY`,
+`POKEVAULT_ORIGIN` and `POKEVAULT_TRUST_PROXY`. SMTP is optional. `compose.yaml` is
+for local use and `compose.cloud.yaml` adds Caddy if you have no proxy.
+[Full guide](GETTING_STARTED.md#create-the-stack).
 
-> The bank lives in IndexedDB, not Docker or GitHub. Export a `.pvault` before changing browser, domain, protocol or port; every web origin has its own storage.
+**Local mode without sign-in:** `py iniciar.py` (Windows) or `python3 iniciar.py`, at
+**http://127.0.0.1:8000**, no packages needed. For your own computer only.
 
-Sign-in protects web access; it does not encrypt IndexedDB or separate accounts within one browser profile. See [protections, recovery and limitations](docs/ACCESS.md#english).
+If you already had a browser bank, server mode offers to **upload** it and verifies
+it; the browser copy is deleted only after you confirm.
 
 ## Games and formats
 
-| Generation | Supported games | Battery size | PC boxes |
-| --- | --- | --- | --- |
-| I | International Yellow | 32 KiB | 12 |
-| II | International Crystal | 32 KiB | 14 |
-| III | International Ruby, Sapphire, Emerald, FireRed and LeafGreen | 128 KiB | 14 |
-| IV | Diamond, Pearl, Platinum, HeartGold and SoulSilver | 512 KiB | 18 |
-| V | Black, White, Black 2 and White 2 | 512 KiB | 24 |
+- Gen I: international Yellow, 32 KiB, 12 boxes and party.
+- Gen II: international Crystal, 32 KiB, 14 boxes and party.
+- Gen III: international Ruby, Sapphire, Emerald, FireRed and LeafGreen, 128 KiB, 14 boxes and party.
+- Gen IV: Diamond, Pearl, Platinum, HeartGold and SoulSilver, 512 KiB, 18 boxes and party.
+- Gen V: Black, White, Black 2 and White 2, 512 KiB, 24 boxes and party.
+- DS accepts 512 KiB SAV/SRM and DSV with a recognized 40- or 122-byte footer, kept intact. ROM hacks, save states, compressed No$GBA batteries and GB RTC tails are not supported.
 
-Party Pokémon are also read. DS supports raw SAV/SRM and DSV with recognized 40- or 122-byte footers; the complete file is retained. ROM hacks, savestates, compressed No$GBA batteries and GB RTC tails are unsupported.
+## Moving Pokémon
 
-Pokédex descriptions are reference text bundled locally, not extracted from the save. The pinned source has English text for these editions but no Spanish; the fallback is explicitly labeled and never substitutes another game.
+The [pokevault-move-v1](docs/MOVE_TRANSFER.md) policy produces one file per source
+save and one for the destination. The ZIP has `copiar-a-la-SD/<gb|gbc|gba|nds>/`
+with the **exact name and extension** of each imported file (`.srm`, `.sav` or
+`.dsv`): install **all or none**, checking the SD hash first. `originales/` is only
+for rolling back.
 
-## Move exports
+| Route | Real tool | Trade evolution |
+| --- | --- | --- |
+| I→I · II→II · III→III · IV→IV · V→V | Trade | Yes |
+| I→II | Time Capsule | Yes |
+| Crystal II→III (Ruby/Sapphire/Emerald/FR/LG) | Unofficial custom conversion ([policy](docs/CUSTOM_TRANSFER.md)) | Yes |
+| III→IV · IV→V · III→IV→V | Pal Park · Poké Transfer | No, as in the games |
+| Direct II→IV/V and backward moves | — | Blocked |
 
-[pokevault-move-v1](docs/MOVE_TRANSFER.md) produces one output per source and one for the destination. Pokémon leave the source outputs; imported bytes remain immutable. ZIP files retain exact names/extensions under `copiar-a-la-SD/<gb|gbc|gba|nds>/`. Install **all outputs or none**, checking every SD `before` hash. Same-generation, I→II and custom II→III moves trigger trade evolution; III→IV/IV→V do not. Destination dex registration and [generated item mappings](docs/ITEM_TRANSFER.md) apply; IV→V returns items to the source bag. No Link Cable or minigame is simulated.
+- **Evolutions:** Kadabra, Machoke, Graveler, Haunter, Boldore, Gurdurr and item
+  evolutions (King's Rock, Metal Coat, Dragon Scale, Up-Grade…; the item is
+  consumed). An Everstone prevents them. Without a nickname, the name follows the
+  destination cartridge language. A move learned at the current level blocks it.
+- **Items:** they travel with the Pokémon per [tables generated from PKHeX](docs/ITEM_TRANSFER.md);
+  IV→V returns them to the source game's bag, as Poké Transfer does.
+- **Destination Pokédex:** the received and evolved species are registered.
+- **Clone prevention:** used versions are consumed and cannot be reused or
+  re-imported (not even from `originales/` or a `.pvault`). **Cancel export**
+  requires confirming nothing was installed. Afterwards, import the new files.
+- Eggs, party Pokémon, Mail, HMs when advancing generations, unverified events and
+  forms, duplicates and lossy text are blocked. This is not a competitive legality
+  check. [Sources and limits](docs/MOVE_IMPLEMENTATION.md).
 
-| Route | Support |
-| --- | --- |
-| I→I, II→II, III→III, IV→IV, V→V | Same-generation moves with trade evolution and language/form/item restrictions. |
-| I→II | Time Capsule conversion: raw data, names, DVs, EVs and EXP preserved; friendship 70 and native catch-rate-to-item mapping. |
-| III→IV | Pal Park: PID, ID32, EXP, EVs, IVs, Gen III ability, nature, ribbons and names; location 55, explicit date, friendship 70 and Gen IV PP. |
-| IV→V | Poké Transfer: PID, IVs, nature, names and data; location 30001, explicit date, friendship 70 and Gen V PP. |
-| III→V | Chained III→IV→V conversion. |
-| Crystal II→III | Optional custom conversion to Ruby/Sapphire/Emerald/FireRed/LeafGreen; generated fields and adapted stats require review. [Policy and limits](docs/CUSTOM_TRANSFER.md#english). |
-| Direct II→IV/V and backward transfers | Blocked. |
+The date is fixed at review time (Atlantic/Canary) and exported bytes must match the
+reviewed ones. The manifest includes file and entity hashes.
 
-Eggs, Pokémon outside the PC, mail and incompatible items, quarantined destinations, duplicates, occupied slots and incompatible languages are blocked. Conversions reject HMs instead of deleting them, fateful-encounter events, unsupported forms and lossy text conversions. This is a conservative policy, not competitive legality analysis. GTS, Day Care, Pokéwalker and Battle Box data are not extracted.
+## Write guarantees
 
-The conversion date is fixed during review using Atlantic/Canary time. Exported bytes must exactly match the reviewed result. The ZIP includes originals, all outputs, instructions and a manifest with file and entity hashes, route, date and changes.
+- Imported bytes are never modified; work happens on copies. Only empty slots are
+  used, and a range mask blocks any change outside the authorized areas.
+- After writing, everything is re-read: each moved Pokémon, existing ones (source
+  and destination), the Pokédex and every checksum or CRC (main, banks, mirrors,
+  Gen V table and Gen IV bag). DSV keeps its exact length and footer.
+- Copies on import and before export, restore points and revision control: between
+  tabs in the browser, and between devices on the server (409).
 
-Used save versions become consumed: selection and reimport are blocked,
-including files from `originales/`. The ledger survives `.pvault` backups and
-save retirement. **Anular exportación** requires confirming no output was
-installed and records the cancellation. Import the new saves to continue.
-This local guard does not prevent external file/browser manipulation.
+## Security and privacy
 
-Select **cartridge language** when importing GB/GBA; IV/V read it from the save.
-Legacy GBA banks must confirm it before a potentially renamed evolution.
-Pending blocks: non-base Gen V dex forms, foreign unnicknamed Gen V evolutions,
-and R/S renaming that differs by unidentified ROM revision.
-[Primary sources and implementation limits](docs/MOVE_IMPLEMENTATION.md).
-
-## Write safeguards
-
-- Only empty slots are used. The output is parsed again, each inserted Pokémon is checked and existing Pokémon must remain unchanged. A write-range mask blocks changes outside authorized regions.
-- Yellow updates the active box and mirror, plus main, bank and per-box checksums. Uninitialized inactive boxes are blocked.
-- Crystal updates lists and the active mirror, updating authorized dex flags in both main/backup copies and their checksums. PC boxes are outside the main checksum.
-- Gen III updates PC slots, dex mirrors and sector checksums, keeping the other internal save copy.
-- Gen IV writes to active storage and updates its CRC; HGSS records the changed box. The general dex and IV→V source bag are updated; the previous partition is retained.
-- Gen V updates the box block, its local/mirrored checksum and the checksum-table CRC. Backup and auxiliary data are retained.
-- DSV output keeps the exact original length and footer and is exported as DSV.
-- A copy is retained on import and another before export. The bank keeps organization restore points and a portable `.pvault` backup. A revision check prevents overwriting changes from another tab.
+- Sign-in with scrypt, expiring sessions, CSRF, attempt limits, and every session
+  closed when the password is changed or reset. [Access](docs/ACCESS.md#english).
+- Bank and account encrypted on the volume with AES-256-GCM; the server validates
+  each revision and the browser checks the SHA-256 of every original it downloads.
+- Mail only leaves over TLS. Optional Pokémon messages send species, nickname, level
+  and game to your mail provider.
 
 ## Development and verification
 
-Serve `dist` with a static server; no installation step is needed. `node --test tests/*.test.js` checks integrity, formats, writes and conversions. Save fixtures are synthetic and non-playable and are never included in `dist`. Public PKHeX entities are also used, and fields are checked against original specifications. Tests do not replace checking a real save copy in an emulator or on an R36S.
-
-With Node.js 22 or newer:
+With Node.js 22 or later:
 
 ```bash
-npm test
+npm test                                   # 165 format, write and move tests
+npm --prefix server ci --ignore-scripts
+npm run test:auth                          # 38 access, encrypted bank and account tests
 ```
 
-The save suite contains 97 tests and needs no package installation. The access server adds 18 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. Checks run locally; there are no GitHub Actions workflows. Portainer builds directly from Git.
-
-IndexedDB and isolated browser regressions: `npm run test:browser`. See [setup and coverage](docs/VALIDATION.md#english).
+With Playwright (see [VALIDATION](docs/VALIDATION.md)): `npm run test:browser`,
+`test:browser:move`, `test:browser:vault` and `test:browser:account`. Test saves are
+synthetic and not playable; outputs go to `.test-output/`. Tests do not replace
+checking a real copy in the emulator or on the R36S. There are no GitHub Actions:
+Portainer builds straight from Git.
 
 ## Project map
 
 | Path | Responsibility |
 | --- | --- |
-| `dist/app.js` | UI, IndexedDB, bank, backups, review and export. |
-| `dist/core.js` | GB/GBA reading, shared validation, SHA-256, ZIP and Gen III writing. |
-| `dist/formats.js` | Yellow/DS reading, DSV containers and DS entity encryption. |
-| `dist/move*.js` | Move policy, items, evolutions and Pokédex; reproducible tables. |
-| `dist/transfer.js` | Routes, conversions and GB/DS copy writing. |
-| `dist/*data.js` | Species, text and conversion tables with documented provenance. |
-| `dist/styles.css`, `dist/sprites/` | Responsive layout and 649 local sprites. |
-| `tests/` | Tests and public reference entities. |
-| `dist/pokedex*.js`, `dist/custom-transfer*.js` | Read-only Pokédex, offline descriptions and explicitly enabled Crystal → GBA conversion. |
-| `server/` | Access server, ES/EN screen, credential generator and tests. |
-| `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Portainer with existing Nginx, local sign-in and optional Caddy; previous Nginx config retained. |
-| `iniciar.py` | Python server bound to `127.0.0.1`. |
-| `AGENTS.md` | Development and data-protection rules; [English translation](AGENTS.en.md). |
+| `dist/app.js` | Interface, bank, backups, review, export, account and animations. |
+| `dist/core.js`, `dist/formats.js` | GB/GBA/DS reading, validation, SHA-256, ZIP and DS entity encryption. |
+| `dist/move*.js`, `dist/consumed.js` | Moves, items, evolutions, Pokédex and consumed versions. |
+| `dist/transfer.js`, `dist/custom-transfer.js` | Routes and conversions, including Crystal → GBA. |
+| `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Bank in IndexedDB or on the server and `.pvault` backups. |
+| `dist/animations.js`, `dist/pokedex*.js` | Animations and Pokédex with local descriptions. |
+| `dist/*data.js`, `dist/sprites/` | Tables with provenance and sprites 1–649 (static, shiny and animated). |
+| `server/` | Sign-in, encrypted bank (`vault-*`), account and email (`account-store`, `mailer`, `notifications`), public pages and `vault-admin.mjs`. |
+| `scripts/` | Reproducible generators for tables, Pokédex and sprites. |
+| `tests/`, `server/tests/` | Unit and browser tests. |
+| `Dockerfile`, `docker-compose.yml`, `compose*.yaml`, `docker/` | Portainer with your Nginx, local use and optional Caddy. |
+| `iniciar.py` | Local server restricted to `127.0.0.1`. |
+| `AGENTS.en.md` | Development and data-protection rules ([Spanish](AGENTS.md)). |
 
-## Documentation in two languages
+## Documentation
 
-| Document | Español | English |
+| Document | Spanish | English |
 | --- | --- | --- |
-| Overview, compatibility and architecture | [README](README.md) | [README](README.en.md) |
-| Setup, Docker and Portainer | [Empezar](EMPEZAR.md) | [Getting started](GETTING_STARTED.md) |
-| Change history | [Historial](CHANGELOG.md) | [Changelog](CHANGELOG.en.md) |
-| Development rules | [Pautas](AGENTS.md) | [Guidelines](AGENTS.en.md) |
-| Contributions | [Guía bilingüe](CONTRIBUTING.md#español) | [Bilingual guide](CONTRIBUTING.md#english) |
-| Test entities and attribution | [Procedencia](tests/fixtures/README.md#español) | [Provenance](tests/fixtures/README.md#english) |
-| Login and security | [Acceso](docs/ACCESS.md#español) | [Access](docs/ACCESS.md#english) |
+| Overview | [README](README.md) | [README](README.en.md) |
+| Getting started, Docker, Portainer, email and backups | [Empezar](EMPEZAR.md) | [Getting started](GETTING_STARTED.md) |
+| Changelog | [Historial](CHANGELOG.md) | [Changelog](CHANGELOG.en.md) |
+| Sign-in and security | [Acceso](docs/ACCESS.md#español) | [Access](docs/ACCESS.md#english) |
+| Server bank · Account and email | [SERVER_VAULT](docs/SERVER_VAULT.md) · [ACCOUNT_EMAIL](docs/ACCOUNT_EMAIL.md) | (summary at the end of each) |
+| Moves, items, Crystal → GBA, Pokédex, animations | [MOVE_TRANSFER](docs/MOVE_TRANSFER.md) · [ITEM_TRANSFER](docs/ITEM_TRANSFER.md) · [CUSTOM_TRANSFER](docs/CUSTOM_TRANSFER.md) · [POKEDEX](docs/POKEDEX.md) · [ANIMATIONS](docs/ANIMATIONS.md) | (bilingual or with summary) |
+| Tests and validation | [VALIDATION](docs/VALIDATION.md) | [VALIDATION](docs/VALIDATION.md) |
+| Development guidelines | [Pautas](AGENTS.md) | [Guidelines](AGENTS.en.md) |
+| Contributing and test entities | [Guía](CONTRIBUTING.md#español) · [Procedencia](tests/fixtures/README.md#español) | [Guide](CONTRIBUTING.md#english) · [Provenance](tests/fixtures/README.md#english) |
 
 ## Sources and license
 
-Original JavaScript implementation under GPL-3.0. Tables and references from [kwsch/PKHeX](https://github.com/kwsch/PKHeX), © its authors: PK1/PK3/PK4, SAV1/SAV2/SAV3/SAV4/SAV5, StringConverter345, SpeciesName, personal_e and MoveInfo4/5. See [LICENSE](LICENSE), also retained at `dist/LICENSE`. Native references include [pret/pokeyellow](https://github.com/pret/pokeyellow), [pret/pokecrystal](https://github.com/pret/pokecrystal), [pret/pokeemerald](https://github.com/pret/pokeemerald) and [pret/pokefirered](https://github.com/pret/pokefirered). Local tables are in `data.js`, `formats-data.js` and `transfer-data.js`.
-
-Reference entities: [tests/fixtures/README.md](tests/fixtures/README.md). Species and growth data: [PokéAPI](https://github.com/PokeAPI/pokeapi). Local sprites through species 649, including shiny and animated ones (pinned commit in `dist/sprites/SOURCES.json`): [PokeAPI/sprites](https://github.com/PokeAPI/sprites). Images and characters belong to The Pokémon Company. This is an unofficial personal project.
+Original JavaScript implementation under GPL-3.0 ([LICENSE](LICENSE), also in
+`dist/LICENSE`). Tables and references from [kwsch/PKHeX](https://github.com/kwsch/PKHeX),
+© its authors. Native sources checked in [pret/pokeyellow](https://github.com/pret/pokeyellow),
+[pret/pokecrystal](https://github.com/pret/pokecrystal), [pret/pokeemerald](https://github.com/pret/pokeemerald),
+[pret/pokefirered](https://github.com/pret/pokefirered), [pret/pokeplatinum](https://github.com/pret/pokeplatinum)
+and [pret/pokeheartgold](https://github.com/pret/pokeheartgold). Species, descriptions and
+sprites from [PokéAPI](https://github.com/PokeAPI/pokeapi) and [PokeAPI/sprites](https://github.com/PokeAPI/sprites)
+at pinned versions. Test entities: `tests/fixtures/README.md`. Images and characters
+belong to Nintendo, Creatures, GAME FREAK and The Pokémon Company. Unofficial
+personal project.

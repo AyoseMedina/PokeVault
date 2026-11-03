@@ -70,10 +70,13 @@ las sesiones sin tocar el banco.
 
 ### Alcance
 
-El login **no cifra IndexedDB ni separa usuarios dentro del mismo perfil de
-navegador**. Quien acceda a ese perfil o sus herramientas de desarrollo puede
-leer los datos locales. Usa un perfil propio en equipos compartidos. Cerrar
-sesión conserva los guardados; exporta `.pvault` para copias externas.
+Con Docker, el banco y la cuenta se guardan **cifrados en el servidor** (volumen
+`pokevault_data`, AES-256-GCM, [SERVER_VAULT](SERVER_VAULT.md)) y el navegador no
+conserva copia. Cerrar sesión no borra nada. La contraseña se cambia y recupera
+desde la web ([ACCOUNT_EMAIL](ACCOUNT_EMAIL.md)); tras el primer arranque manda la
+cuenta del volumen, no `POKEVAULT_PASSWORD_HASH`. Con `iniciar.py`, el banco queda
+sin cifrar en IndexedDB de ese perfil de navegador: usa un perfil propio en
+equipos compartidos.
 
 No hay MFA, passkeys ni SSO; para ello utiliza una capa de identidad adicional.
 El almacén en memoria está pensado para una instancia, no varias réplicas.
@@ -149,10 +152,12 @@ revokes sessions without touching the bank.
 
 ### Scope
 
-Sign-in **does not encrypt IndexedDB or isolate users within one browser
-profile**. Anyone with access to that profile or its developer tools can
-read local data. Use your own profile on shared computers. Logout preserves
-saves; export `.pvault` for external backups.
+With Docker, the bank and account are stored **encrypted on the server**
+(`pokevault_data` volume, AES-256-GCM, [SERVER_VAULT](SERVER_VAULT.md)) and the browser
+keeps no copy. Logout deletes nothing. The password is changed and recovered from
+the web ([ACCOUNT_EMAIL](ACCOUNT_EMAIL.md)); after the first start the volume account
+is authoritative, not `POKEVAULT_PASSWORD_HASH`. With `iniciar.py`, the bank stays
+unencrypted in that browser profile's IndexedDB: use your own profile on shared computers.
 
 MFA, passkeys and SSO require an additional identity layer. The in-memory store
 targets one instance, not multiple replicas. `iniciar.py` and serving `dist/`

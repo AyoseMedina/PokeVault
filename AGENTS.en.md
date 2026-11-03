@@ -27,7 +27,12 @@ Main files:
 - `dist/styles.css`: responsive design; preserve the user-requested red, white and charcoal Pokémon theme.
 - `tests/`: tests using public entities and synthetic, non-playable saves.
 - `iniciar.py`: local server restricted to 127.0.0.1.
-- `server/`: login, sessions, throttling and ES/EN access resources.
+- `server/`: sign-in, sessions, limits, encrypted bank (`vault-store`, `vault-validate`,
+  `vault-admin.mjs`), account and email (`account-store`, `mailer`, `notifications`)
+  and ES/EN public pages.
+- `dist/move*.js`, `dist/consumed.js`, `dist/vault.js`, `dist/server-vault.js`, `dist/animations.js`:
+  moves, consumed versions, local/server bank and animations.
+- `scripts/`: reproducible generators (tables, Pokédex, sprites) at pinned versions.
 - `docker-compose.yml`: Portainer behind existing Nginx, without host ports.
 - `compose.yaml`, `compose.cloud.yaml`: local access or optional Caddy.
 

@@ -1,6 +1,6 @@
 {
   "name": "pokevault-r36s",
-  "description": "Banco personal de Pokémon I–V para R36S / ArkOS. Personal Pokémon I–V bank for R36S / ArkOS.",
+  "description": "Banco personal de Pokémon I–V para R36S / ArkOS: mueve Pokémon entre partidas con evoluciones por intercambio y banco cifrado en tu servidor. Personal Pokémon I–V bank: move Pokémon between saves with trade evolutions and an encrypted self-hosted bank.",
   "private": true,
   "license": "GPL-3.0",
   "repository": {

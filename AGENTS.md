@@ -2,23 +2,21 @@
 
 ## Objetivo y arquitectura
 
-PokéVault es una aplicación estática de uso personal para gestionar guardados
-de Pokémon de generaciones I–V. Los archivos se procesan en el navegador;
-IndexedDB conserva el banco. No hay servidor de guardados ni dependencias de
-ejecución JavaScript en el navegador. `server/` añade autenticación HTTP para
-Docker y Node; no recibe ni almacena guardados. El proxy Nginx existente gestiona
-HTTPS; Caddy se conserva como alternativa opcional.
-
-**Cambio autorizado e implementado (2026-11-03):** en modo Docker/Node el banco
-completo vive en el servidor, cifrado en el volumen `pokevault_data` según
-`docs/SERVER_VAULT.md` (sustituye «no recibe ni almacena guardados» para ese
-modo). El análisis y la escritura siguen en el navegador; `iniciar.py` conserva
-IndexedDB. Nunca registrar contenido del banco; no sobrescribir ni reinicializar
+PokéVault es una aplicación de uso personal para gestionar y mover Pokémon
+entre guardados de generaciones I–V. Los archivos se analizan y escriben en el
+navegador, sin dependencias de ejecución JavaScript en él. En modo Docker/Node,
+`server/` añade login, la cuenta con correo y el banco completo **cifrado en el
+volumen `pokevault_data`** (autorizado el 2026-11-03, `docs/SERVER_VAULT.md` y
+`docs/ACCOUNT_EMAIL.md`). En modo local (`iniciar.py`) IndexedDB conserva el banco.
+El proxy Nginx existente gestiona HTTPS; Caddy se conserva como alternativa. Nunca registrar contenido del banco; no sobrescribir ni reinicializar
 el volumen; perder `POKEVAULT_DATA_KEY` significa perder el banco.
 
 Archivos principales:
 
-- `dist/app.js`: interfaz, persistencia, respaldo y flujo de revisión/exportación.
+- `dist/app.js`: interfaz, persistencia, respaldo, revisión/exportación, cuenta y animaciones.
+- `dist/move*.js`, `dist/consumed.js`: movimiento, objetos, evoluciones, Pokédex y versiones consumidas.
+- `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js`: banco local o en el servidor y `.pvault`.
+- `dist/animations.js`: animaciones de intercambio y evolución (solo interfaz).
 - `dist/core.js`: formatos GBC/GBA, validación común, ZIP y escritura Gen III.
 - `dist/formats.js`: lectura de Amarillo/DS y cifrado de entidades DS.
 - `dist/transfer.js`: rutas, conversiones y escritura de copias en GB y DS.
@@ -26,7 +24,10 @@ Archivos principales:
 - `dist/styles.css`: diseño adaptable; conservar el tema Pokémon rojo, blanco y negro solicitado por el usuario.
 - `tests/`: pruebas con entidades públicas y guardados sintéticos no jugables.
 - `iniciar.py`: servidor local limitado a 127.0.0.1.
-- `server/`: login, sesiones, limitación de intentos y recursos de acceso ES/EN.
+- `server/`: login, sesiones, límites, banco cifrado (`vault-store`, `vault-validate`,
+  `vault-admin.mjs`), cuenta y correo (`account-store`, `mailer`, `notifications`)
+  y páginas públicas ES/EN.
+- `scripts/`: generadores reproducibles (tablas, Pokédex, sprites) con versiones fijadas.
 - `docker-compose.yml`: Portainer detrás del Nginx existente, sin puertos de host.
 - `compose.yaml`, `compose.cloud.yaml`: acceso local o Caddy opcional.
 

@@ -13,9 +13,9 @@ cd PokeVault
 
 ## Uso en móvil o tableta
 
-Abre la URL de tu despliegue y utiliza **Menú** para acceder a las seis secciones. Puedes importar archivos desde el selector del dispositivo y guardar las descargas desde **Descargar archivo**. Para organizar cajas, marca los Pokémon y pulsa **Mover de caja**; no necesitas arrastrarlos.
+Abre la URL de tu despliegue y utiliza **Menú** para acceder a todas las secciones (incluida **Cuenta** con Docker). Puedes importar archivos desde el selector del dispositivo y guardar las descargas desde **Descargar archivo**. Para organizar cajas, marca los Pokémon y pulsa **Mover de caja**; no necesitas arrastrarlos.
 
-El banco se guarda en el navegador de cada dispositivo. Para llevarlo del ordenador al móvil, exporta un `.pvault` en **Copias de seguridad** y restáuralo en el móvil. El login no sincroniza los bancos. `localhost` solo funciona en el propio equipo; en el teléfono utiliza la URL accesible de tu despliegue con Nginx.
+Con Docker el banco está **cifrado en el servidor**: entra desde el móvil o el ordenador y verás el mismo banco. Si dos dispositivos cambian algo a la vez, el segundo recibe un aviso para recargar. Con `iniciar.py` el banco es del navegador de cada dispositivo (usa un `.pvault` para llevarlo). `localhost` solo funciona en el propio equipo; en el teléfono utiliza la URL accesible de tu despliegue con Nginx.
 
 ## Importar y mover partidas
 
@@ -227,9 +227,10 @@ borra datos. Para recuperar o cambiar la contraseña, ejecuta el generador sin
 
 Para pasar de local a tu proxy, conserva las credenciales, selecciona
 `docker-compose.yml` y configura origen HTTPS e IP del proxy. Si eliges Caddy,
-usa `compose.cloud.yaml` y configura su dominio. Exporta antes un `.pvault`: cambiar protocolo, dominio/IP,
-puerto o perfil de navegador cambia el almacenamiento visible. Restáuralo en
-la nueva dirección. El login no sincroniza ni cifra IndexedDB.
+usa `compose.cloud.yaml` y configura su dominio. El banco y la cuenta están en el
+volumen `pokevault_data`: conserva el volumen y la misma `POKEVAULT_DATA_KEY`.
+Para mover el servidor a otra máquina, copia el volumen (ver «Banco en el
+servidor») o exporta un `.pvault` y restáuralo en la nueva dirección.
 
 ### Revisar o detener
 
