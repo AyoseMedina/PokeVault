@@ -1,0 +1,14 @@
+{
+  "name": "pokevault-r36s",
+  "description": "Banco personal de Pokémon I–V para R36S / ArkOS. Personal Pokémon I–V bank for R36S / ArkOS.",
+  "private": true,
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AyoseMedina/PokeVault.git"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

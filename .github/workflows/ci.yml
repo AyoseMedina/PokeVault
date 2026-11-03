@@ -1,0 +1,36 @@
+name: Tests & Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Tests and container / Pruebas y contenedor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+      - name: Test / Probar
+        run: npm test
+      - name: Build and start / Construir e iniciar
+        run: docker compose -p pokevault-ci up -d --build --wait --wait-timeout 60
+      - name: Check HTTP / Comprobar HTTP
+        run: |
+          curl --fail --silent http://127.0.0.1:8080/healthz | grep -Fx ok
+          curl --fail --silent http://127.0.0.1:8080/app.js | cmp dist/app.js -
+          curl --fail --silent http://127.0.0.1:8080/sprites/649.png | cmp dist/sprites/649.png -
+      - name: Logs / Registros
+        if: failure()
+        run: docker compose -p pokevault-ci logs --no-color
+      - name: Cleanup / Limpiar
+        if: always()
+        run: docker compose -p pokevault-ci down

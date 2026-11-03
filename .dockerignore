@@ -1,0 +1,13 @@
+# Solo entran en la imagen los recursos web y la configuración del servidor.
+**
+!Dockerfile
+!docker/
+!docker/nginx.conf
+!dist/
+!dist/*.html
+!dist/*.js
+!dist/*.css
+!dist/*.svg
+!dist/LICENSE
+!dist/sprites/
+!dist/sprites/*.png

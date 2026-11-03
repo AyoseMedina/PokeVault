@@ -1,0 +1,22 @@
+# Portainer: Docker Standalone > Stacks > Add stack > Git Repository.
+services:
+  pokevault:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: build
+    restart: unless-stopped
+    ports:
+      - "${POKEVAULT_BIND_IP:-127.0.0.1}:${POKEVAULT_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
