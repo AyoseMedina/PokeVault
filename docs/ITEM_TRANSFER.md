@@ -6,6 +6,15 @@
 
 ## Resumen por ruta
 
+Las tablas incluyen también nombres ES/EN y bolsillos Gen IV generados desde
+PlayerBag4DP/Pt/HGSS: offsets relativos al bloque general, capacidad, máximo y
+IDs del bolsillo. Se contrastan con pret; ver MOVE_IMPLEMENTATION.md. Las MT y
+bayas se ordenan como en Bag_TryAddItem/Bag_AddItem al devolver un objeto.
+
+The generated data also includes Spanish/English names and Gen IV bag pockets
+from PlayerBag4DP/Pt/HGSS. Returns preserve all other quantities, enforce native
+stack limits and sort TM/berry pockets as the games do. See MOVE_IMPLEMENTATION.md.
+
 | Ruta | Juego real | Política PokéVault |
 |---|---|---|
 | Misma generación | El objeto viaja con el Pokémon | Se permite si el objeto se puede equipar en el juego de destino (tabla al final); Cartas bloqueadas |

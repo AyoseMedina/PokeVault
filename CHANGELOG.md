@@ -5,6 +5,22 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Movimiento, fase 3 y corrección de idioma (sin despliegue)
+
+- Objetos equipados según las tablas generadas de PKHeX, equivalencias II→III
+  y III→IV, consumo al evolucionar y devolución IV→V a la mochila de origen.
+  Límites, ordenación nativa de MT/bayas, cantidades y CRC verificados. Cartas
+  y III→IV→V con objeto bloqueados.
+- Renombrado según cartucho de destino: idioma GB/GBA elegido al importar,
+  campos verificados IV/V y confirmación para bancos GBA antiguos. Esmeralda y
+  RF/VH conservan nombres extranjeros; IV usa el nombre del cartucho sin mote.
+  Renombrados R/S ambiguos por revisión y extranjeros sin mote V bloqueados
+  hasta poder verificarlos; los motes se conservan byte por byte.
+- Pruebas de objetos, todas las evoluciones, idiomas cruzados, compactación,
+  Pokédex/espejos y anticlonado. Chromium: flujo completo con evolución y objeto,
+  revisión móvil, ZIP, consumo, reimportación, respaldo/restauración y anulación.
+- Guía, LEEME ES/EN, rutas, README y fuentes actualizados. Sin despliegue del sitio.
+
 ## 2026-11-03 · Movimiento, fase 2 (sin despliegue)
 
 - Evoluciones por intercambio según ruta, nombres exactos, habilidad de la

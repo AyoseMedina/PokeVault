@@ -19,9 +19,11 @@ test('multi-file move preserves exact names and blocks same source/destination o
  for(const f of [s,d])f.hash=await sha256(f.bytes);
  const picks=parseSave(s.bytes,s.game).records.map(p=>({...p,saveId:s.id}));
  const out=buildMove(d,picks,0,[s]);assert.equal(out.outputs.length,2);assert.equal(resultPath(s),'copiar-a-la-SD/gba/Mi aventura é.srm');assert.equal(resultPath(d),'copiar-a-la-SD/gba/Rojo fuego.SAV');
+ assert.equal(resultPath({...s,game:'platinum',name:'Mi DS é.dsv'}),'copiar-a-la-SD/nds/Mi DS é.dsv');
  assert.equal(parseSave(out.outputs[1].bytes,s.game).records.length,0);
  assert.throws(()=>buildMove(s,picks,0,[s]),/misma partida/);
  assert.throws(()=>buildMove({...d,name:s.name},picks,0,[s]),/comparten nombre/);
+ assert.throws(()=>buildMove({...d,name:s.name.toUpperCase().normalize('NFD')},picks,0,[s]),/comparten nombre/);
  for(const name of ['../a.sav','a\\b.sav','a/b.sav','a\0.sav'])assert.throws(()=>resultPath({...s,name}),/Nombre/);
 });
 test('consumption survives retirement and old backup merges; annul requires confirmation and no imported result',()=>{

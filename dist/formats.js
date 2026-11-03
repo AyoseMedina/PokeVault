@@ -91,12 +91,14 @@ function selectG4Block(bytes,start,length,footer,label){
 }
 export function parseNDS(input,game,levelFrom){
   const config=DS_LAYOUTS[game];require(config,'Juego de Nintendo DS no compatible.');
-  const {bytes:b,container}=unwrapDS(input),records=[],boxes=[];let trainer,tid,checks,writeInfo;
+  const {bytes:b,container}=unwrapDS(input),records=[],boxes=[];let trainer,tid,checks,writeInfo,gameLanguage;
   const add=(raw,loc)=>{const p=parsePK45(raw,config.generation,loc,levelFrom);if(p)records.push(p);};
   if(config.generation===4){
     const g=selectG4Block(b,0,config.gsize,config.footer,'Datos generales'),s=selectG4Block(b,config.sstart,config.ssize,config.footer,'Cajas del PC');
     writeInfo={kind:'nds4',generalBase:g.base,generalSize:config.gsize,storageBase:s.base,storageSize:config.ssize,footer:config.footer,boxStart:config.boxStart,stride:config.stride,hgss:config.family==='hgss'};
     trainer=decodeDS(g.data.subarray(config.trainer,config.trainer+16),4);tid=u16(g.data,config.trainer+16);
+    // PKHeX SAV4.Language: active general block, Trainer1 + 0x19.
+    gameLanguage=({2:'en',3:'fr',4:'it',5:'de',7:'es'})[g.data[config.trainer+0x19]];
     const current=u32(s.data,config.family==='hgss'?0x12000:0);require(current<18,'Índice de caja DS no válido.');
     for(let box=0;box<18;box++){
       const name=decodeDS(s.data.subarray(config.names+box*40,config.names+box*40+40),4)||`Caja ${box+1}`;boxes.push(name);
@@ -113,6 +115,8 @@ export function parseNDS(input,game,levelFrom){
       require(crc===u16(b,checksum)&&crc===u16(b,mirror),`Nintendo DS: CRC incorrecto en bloque ${index} de ${config.family==='bw'?'Negro / Blanco':'Negro 2 / Blanco 2'}. Comprueba el juego seleccionado y exporta una batería válida.`);
     }
     trainer=decodeDS(b.subarray(0x19404,0x19414),5);tid=u16(b,0x19414);require(b[0]<24,'Índice de caja DS no válido.');
+    // PKHeX PlayerData5.Language, block 27 (0x19400), relative 0x1E.
+    gameLanguage=({2:'en',3:'fr',4:'it',5:'de',7:'es'})[b[0x1941E]];
     for(let box=0;box<24;box++){
       const name=decodeDS(b.subarray(4+box*40,4+box*40+20),5)||`Caja ${box+1}`;boxes.push(name);
       for(let slot=0;slot<30;slot++){const offset=0x400+box*4096+slot*136;add(b.subarray(offset,offset+136),{box,slot,location:'pc',boxName:name});}
@@ -122,5 +126,5 @@ export function parseNDS(input,game,levelFrom){
     checks=[{label:'CRC bloques principales',ok:true,detail:`${blocks.length} / ${blocks.length}`},{label:'Checksums espejo',ok:true,detail:'Verificados · 24 cajas'}];
   }
   const bad=records.filter(p=>!p.valid).length;
-  return {generation:config.generation,game,trainer,tid,records,boxes,boxCapacity:30,container,writeInfo,checks:[{label:'Batería DS',ok:true,detail:container},...checks,{label:'Pokémon descifrados',ok:bad===0,detail:bad?`${bad} en cuarentena`:`${records.length} verificados`}],warnings:['Las transferencias se preparan como copias en archivos nuevos, con respaldo y comprobación posterior. La ruta y sus restricciones se revisan antes de exportar.','Se leen cajas de PC y equipo. No se extraen guardería, GTS, Pokéwalker, caja de combate ni otros contenidos auxiliares. La validación cubre los bloques principales, no todos los datos adicionales.']};
+  return {generation:config.generation,game,gameLanguage,trainer,tid,records,boxes,boxCapacity:30,container,writeInfo,checks:[{label:'Batería DS',ok:true,detail:container},...checks,{label:'Pokémon descifrados',ok:bad===0,detail:bad?`${bad} en cuarentena`:`${records.length} verificados`}],warnings:['Las transferencias se preparan como copias en archivos nuevos, con respaldo y comprobación posterior. La ruta y sus restricciones se revisan antes de exportar.','Se leen cajas de PC y equipo. No se extraen guardería, GTS, Pokéwalker, caja de combate ni otros contenidos auxiliares. La validación cubre los bloques principales, no todos los datos adicionales.']};
 }

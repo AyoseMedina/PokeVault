@@ -25,7 +25,7 @@ export function setHeldItem(p,item){
 }
 // EvolutionSet / SpeciesName / PersonalInfo sources and policy differences:
 // docs/MOVE_IMPLEMENTATION.md. No random PID, name trimming or move replacement.
-export function evolveArrival(p,sourceGeneration,game){
+export function evolveArrival(p,sourceGeneration,game,destinationLanguage){
  const g=p.generation,notes=[],canTrade=sourceGeneration===g||(sourceGeneration===1&&g===2)||(sourceGeneration===2&&g===3);
  if(!canTrade)return {pokemon:p,notes};
  if([588,616].includes(p.species)){notes.push('Karrablast/Shelmet: no evolucionan sin una contrapartida de intercambio; este envío es unidireccional.');return {pokemon:p,notes};}
@@ -34,15 +34,30 @@ export function evolveArrival(p,sourceGeneration,game){
  if(!evolution)return {pokemon:p,notes};
  const target=evolution.species,learn=M.families[M.games[game]].learn[target];need(learn,'Faltan movimientos verificados de la evolución.');
  need(!learn.some(([,level])=>level===p.level),`${speciesName(target,g,'es')} aprende un movimiento en el nivel actual (${p.level}). Evoluciona dentro del juego para elegir; no se sustituirán movimientos.`);
- const lang=g<=2?p.textLanguage||'es':({2:'en',3:'fr',4:'it',5:'de',7:'es'})[p.language],name=speciesName(target,g,lang),raw=p.raw.slice();let renamed=false,out;
+ const lang=g<=2?p.textLanguage||'es':({2:'en',3:'fr',4:'it',5:'de',7:'es'})[p.language],raw=p.raw.slice();let renamed=false,out,renameLanguage=destinationLanguage;
+ if(g<=2)renameLanguage=destinationLanguage||lang; // GB routes already enforce matching import languages.
+ const knownLanguage=['es','en','fr','de','it'].includes(renameLanguage);
+ const name=speciesName(target,g,knownLanguage?renameLanguage:lang);
  if(g<=2){const oldName=encodeExact(speciesName(p.species,g,lang),g,lang,11),nicknameRaw=p.nicknameRaw.slice();renamed=equalName(nicknameRaw,oldName,g);if(renamed)nicknameRaw.set(encodeExact(name,g,lang,11));raw[0]=g===1?F.g1species.indexOf(target):target;if(g===1){raw[5]=personal(game,target).types[0];raw[6]=personal(game,target).types[1];}if(g===2&&evolution.method===6)raw[1]=0;out={...p,raw,species:target,nicknameRaw,heldItem:g===2?raw[1]:0};}
- else if(g===3){const plain=decrypt3(raw),slot=u32(plain,40)>>>31;need(personal(game,target).abilities[slot]>0,'Posición de habilidad evolucionada no válida.');put16(plain,0,internal3(target));if(evolution.method===6)put16(plain,2,0);renamed=equalName(raw.subarray(8,18),encodeExact(speciesName(p.species,g,lang),g,lang,10),g);if(renamed)raw.set(encodeExact(name,g,lang,10),8);out={...p,...parsePK3(encrypt3(raw.subarray(0,32),plain))};}
+ else if(g===3){const plain=decrypt3(raw),slot=u32(plain,40)>>>31;need(personal(game,target).abilities[slot]>0,'Posición de habilidad evolucionada no válida.');put16(plain,0,internal3(target));if(evolution.method===6)put16(plain,2,0);
+   const nick=raw.subarray(8,18),rs=['ruby','sapphire'].includes(game);
+   need(!rs||!nick.includes(0xFC),'Rubí/Zafiro: nombre con códigos de control. No se interpretará ni sustituirá al evolucionar.');
+   const defaultInAnyLanguage=['es','en','fr','de','it'].some(l=>equalName(nick,encodeExact(speciesName(p.species,g,l),g,l,10),g));
+   need(knownLanguage||!defaultInAnyLanguage,'Confirma el idioma del juego GBA de destino antes de evolucionar un Pokémon sin mote. Los bancos antiguos no lo acreditan.');
+   // pokeruby/config.h gates BUGFIX_EVO_NAME by edition/revision, which the
+   // save does not identify. Block only where the two native routines differ.
+   const matchesDestination=knownLanguage&&equalName(nick,encodeExact(speciesName(p.species,g,renameLanguage),g,renameLanguage,10),g);
+   need(!(rs&&lang!==renameLanguage&&matchesDestination),'Rubí/Zafiro: renombrado extranjero ambiguo según revisión de ROM, no almacenada en la partida. Evoluciona dentro del juego.');
+   renamed=matchesDestination&&lang===renameLanguage;
+   if(renamed)raw.set(encodeExact(name,g,renameLanguage,10),8);out={...p,...parsePK3(encrypt3(raw.subarray(0,32),plain))};}
  else{const plain=decryptPK45(raw),slot=g===5&&(plain[0x42]&1)?2:g===5?(p.pid>>>16)&1:p.pid&1;
    const abilities=personal(game,p.species).abilities;need(plain[0x15]===(abilities[slot]||(slot===1?abilities[0]:0)),'La habilidad no coincide con su posición original. Evolución bloqueada.');const targetAbilities=personal(game,target).abilities,ability=targetAbilities[slot]||(slot===1?targetAbilities[0]:0);need(ability>0,'Habilidad evolucionada no verificada.');
-   put16(plain,8,target);plain[0x15]=ability;if(evolution.method===6)put16(plain,10,0);renamed=!(u32(plain,0x38)&0x80000000);if(renamed)plain.set(encodeExact(name,g,lang,22),0x48);out={...p,...parsePK45(encryptPK45(plain),g,{},levelFrom)};
+   put16(plain,8,target);plain[0x15]=ability;if(evolution.method===6)put16(plain,10,0);renamed=!(u32(plain,0x38)&0x80000000);
+   if(renamed){need(knownLanguage,'Idioma del cartucho DS de destino desconocido: no se puede renombrar una evolución sin mote.');need(g!==5||lang===renameLanguage,'Gen V: renombrado de evolución extranjera sin mote pendiente de verificar con código nativo. Evoluciona dentro del juego.');plain.set(encodeExact(name,g,renameLanguage,22),0x48);}
+   out={...p,...parsePK45(encryptPK45(plain),g,{},levelFrom)};
  }
  need(out.exp===p.exp&&out.level===p.level,'La evolución cambiaría experiencia o nivel.');
- notes.push(`${speciesName(p.species,g,lang)} → ${name}: evolución por intercambio${renamed?'; nombre de especie actualizado':' con mote conservado'}${evolution.method===6?'; objeto consumido':''}.`);
+ notes.push(`${speciesName(p.species,g,lang)} → ${name}: evolución por intercambio${renamed?'; nombre actualizado al idioma del juego '+renameLanguage:'; nombre original conservado'}${evolution.method===6?'; objeto consumido':''}.`);
  return {pokemon:out,notes,evolution:{from:p.species,to:target,renamed,consumedItem:evolution.method===6?p.heldItem:0}};
 }
 export function tradeFriendship(p,sourceGeneration){

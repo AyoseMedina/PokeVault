@@ -1,9 +1,10 @@
 import { GAMES,parseSave,buildTransfer,bytesEqual,checksum32,put16,put32 } from './core.js';
 import { encryptPK45,crc16CCITT } from './formats.js';
 import { FORMAT_DATA as F } from './formats-data.js';
-import {evolveArrival,setHeldItem,everstone,tradeFriendship} from './move-entity.js';
+import {evolveArrival,setHeldItem,tradeFriendship} from './move-entity.js';
 import {registerDex,verifyDex} from './move-dex.js';
 import {entityIdentity} from './transfer.js';
+import {itemPlan,returnItemToBag} from './move-items.js';
 export const MOVE_POLICY='pokevault-move-v1';
 const check=(ok,message)=>{if(!ok)throw new Error(message);};
 const u32=(b,o)=>new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(o,true);
@@ -70,31 +71,38 @@ export function removeSelected(save,selected){
 export function buildMove(destination,selected,targetBox,sources,options={}){
   check(destination&&!destination.consumedBy&&!destination.demo,'Destino consumido, de demo o no disponible.');check(selected.length>0,'Selecciona Pokémon del PC.');
   const sourceMap=new Map(sources.map(s=>[s.id,s])),groups=new Map();
+  selected=selected.map(p=>({...p,game:sourceMap.get(p.saveId)?.game}));
   for(const p of selected){const s=sourceMap.get(p.saveId);check(s&&!s.demo&&!s.consumedBy,'Origen consumido, de demo o no disponible.');check(s.id!==destination.id&&s.hash!==destination.hash&&!bytesEqual(s.bytes,destination.bytes),'Origen y destino son la misma partida. Usa el juego para organizarla.');if(!groups.has(s.id))groups.set(s.id,[]);groups.get(s.id).push(p);}
   const all=[destination,...[...groups.keys()].map(id=>sourceMap.get(id))],paths=all.map(resultPath),canonical=paths.map(p=>p.normalize('NFC').toLowerCase());check(new Set(canonical).size===paths.length,'Dos archivos de la misma carpeta comparten nombre. No se renombrarán.');
-  // Phase 2 permits the Everstone explicitly; other held-item routes are
-  // validated by the item policy in phase 3. The copy writer sees isolated
-  // item-free entities, never mutated original records.
+  // Validate items separately, then feed isolated item-free entities to the
+  // existing conversion writer. Original entities remain untouched.
   const targetGeneration=GAMES[destination.game].generation;
-  const inputs=selected.map(p=>p.heldItem===everstone(p.generation)&&p.heldItem?setHeldItem(p,0):p);
+  const itemPlans=selected.map(p=>itemPlan(p,destination.game));
+  const inputs=selected.map(p=>p.heldItem?setHeldItem(p,0):p);
   const result=buildTransfer(destination,inputs,targetBox,options),w=saveWriter({...destination,bytes:result.bytes}),dexSpecies=[],notes=[];
   const identities=new Set(parseSave(destination.bytes,destination.game,destination.language).records.map(entityIdentity));
   for(let index=0;index<result.placements.length;index++){
     const placement=result.placements[index],source=selected[index];placement.pokemon=source;
     let received=result.checked.records.find(p=>p.location==='pc'&&p.box===placement.box&&p.slot===placement.slot);
-    if(inputs[index]!==source){check(source.generation===targetGeneration||(source.generation===2&&targetGeneration===3),'Objeto entre generaciones pendiente de validar.');received=setHeldItem(received,everstone(targetGeneration));}
+    const items=itemPlans[index];if(items.targetItem!==null&&targetGeneration>=2)received=setHeldItem(received,items.targetItem);notes.push(...items.notes);placement.itemChanges=items;
     const friendship=tradeFriendship(received,source.generation);received=friendship.pokemon;notes.push(...friendship.notes);
     registerDex(w,received);dexSpecies.push(received.species);
-    const evolved=evolveArrival(received,source.generation,destination.game),after=evolved.pokemon;
+    const language=targetGeneration>=4?result.checked.gameLanguage:targetGeneration===3?destination.gameLanguage:destination.language;
+    const evolved=evolveArrival(received,source.generation,destination.game,language),after=evolved.pokemon;
     check(!identities.has(entityIdentity(after)),'El Pokémon evolucionado ya existe en el destino.');identities.add(entityIdentity(after));
     if(evolved.evolution){registerDex(w,after);dexSpecies.push(after.species);}
-    w.entity(after);placement.raw=after.raw;placement.resultSpecies=after.species;placement.evolution=evolved.evolution||null;placement.conversion=[...(placement.conversion||[]),...evolved.notes];notes.push(...evolved.notes);
+    w.entity(after);placement.raw=after.raw;placement.resultSpecies=after.species;placement.evolution=evolved.evolution||null;placement.conversion=[...(placement.conversion||[]).map(n=>n.replace('La Pokédex del destino no se modifica.','')),...items.notes,...friendship.notes,...evolved.notes];notes.push(...evolved.notes);
   }
   const finished=w.finish();verifyDex(parseSave(destination.bytes,destination.game,destination.language).pokedex,finished.checked.pokedex,dexSpecies);
   for(const p of parseSave(destination.bytes,destination.game,destination.language).records){check(equalEntity(p,finished.checked.records.find(r=>loc(r)===loc(p))),'Otro Pokémon del destino cambió.');}
   for(const p of result.placements){check(bytesEqual(p.raw,finished.checked.records.find(r=>r.location==='pc'&&r.box===p.box&&r.slot===p.slot)?.raw),'El Pokémon recibido difiere de lo revisado.');}
   result.bytes=finished.bytes;result.checked=finished.checked;
   const outputs=[{save:destination,bytes:result.bytes,role:'destination'}];
-  for(const [id,picks] of groups){const save=sourceMap.get(id);outputs.push({save,bytes:removeSelected(save,picks).bytes,role:'source'});}
+  for(const [id,picks] of groups){
+    const save=sourceMap.get(id),removed=removeSelected(save,picks),writer=saveWriter({...save,bytes:removed.bytes});
+    for(let i=0;i<selected.length;i++)if(selected[i].saveId===id&&itemPlans[i].returnItem)notes.push(returnItemToBag(writer,itemPlans[i].returnItem).notes);
+    const result=writer.finish();for(const p of removed.checked.records)check(equalEntity(p,result.checked.records.find(r=>loc(r)===loc(p))),'Otro Pokémon del origen cambió al devolver objetos.');
+    verifyDex(removed.checked.pokedex,result.checked.pokedex,[]);outputs.push({save,bytes:result.bytes,role:'source'});
+  }
   return {...result,policy:MOVE_POLICY,outputs,notes:[...(result.notes||[]).filter(n=>!n.startsWith('Copia')).map(n=>n.replace('La Pokédex del destino no se modifica.','')),...notes,'Pokédex del destino: especies recibidas y evolucionadas registradas como vistas/capturadas.','Movimiento: se retirarán los Pokémon seleccionados de los nuevos guardados de origen. Instala todos los resultados o ninguno.']};
 }

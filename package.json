@@ -11,6 +11,7 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "test:auth": "node --test server/tests/*.test.js",
-    "test:browser": "node tests/browser-review.mjs"
+    "test:browser": "node tests/browser-review.mjs",
+    "test:browser:move": "node tests/browser-move.mjs"
   }
 }

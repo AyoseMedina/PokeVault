@@ -17,6 +17,17 @@ Open your deployment URL and use **Menú** to reach all six sections. Import fil
 
 Each device’s browser stores its own bank. To move it from desktop to phone, export a `.pvault` in **Copias de seguridad** (Backups), then restore it on the phone. Sign-in does not synchronize banks. `localhost` only works on the same computer; on your phone, use the reachable URL of your Nginx deployment.
 
+## Importing and moving saves
+
+Choose the **cartridge language** when importing GB/GBA, even if its Pokémon
+are foreign. DS reads it from the save. Legacy GBA banks must confirm language
+before an evolution can rename a Pokémon. Review every change before exporting.
+
+Install **all** files from `copiar-a-la-SD` or none, keeping exact filenames and
+extensions and checking each previous hash in the manifest. Used versions are
+consumed. Import the results to continue; if none was installed, confirm
+**Anular exportación** in history. [Guide and limits](docs/MOVE_IMPLEMENTATION.md).
+
 ## Local development without sign-in
 
 The Python server preserves the original static mode without authenticated

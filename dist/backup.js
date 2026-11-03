@@ -17,12 +17,13 @@ export async function decodeBackup(backup,existing=[]) {
     if(!id(s.id)||ids.has(s.id)||!GAMES[s.game])fail('Partida o ID de respaldo no válido.');ids.add(s.id);
     const language=s.language===undefined&&backup.schema===1?'es':s.language;
     if(!LANGUAGES.includes(language))fail('Idioma no admitido en el respaldo.');
+    if(s.gameLanguage!==undefined&&!LANGUAGES.includes(s.gameLanguage))fail('Idioma de juego no admitido en el respaldo.');
     const at=s.at??backup.createdAt;if(!time(at))fail('Fecha de partida no válida.');
     if(saves.some(item=>item.hash===s.hash))fail('Original repetido dentro del respaldo.');
     const bytes=await load(s);
     try {parseSave(bytes,s.game,language).records.forEach(r=>keys.add(`${s.id}/${r.location}/${r.box}/${r.slot}`));}
     catch {if(backup.schema===1)throw new Error('Guardado no legible en respaldo antiguo. Conserva el archivo original.');unreadable.add(s.id);}
-    saves.push({id:s.id,game:s.game,language,at,name:String(s.name||'partida.sav'),hash:s.hash,bytes,...(s.consumedBy?{consumedBy:s.consumedBy,consumedAt:s.consumedAt}:{})});
+    saves.push({id:s.id,game:s.game,language,...(s.gameLanguage?{gameLanguage:s.gameLanguage}:{}),at,name:String(s.name||'partida.sav'),hash:s.hash,bytes,...(s.consumedBy?{consumedBy:s.consumedBy,consumedAt:s.consumedAt}:{})});
   }
   if(existing.length+new Set(saves.filter(s=>!existing.some(e=>e.hash===s.hash)).map(s=>s.hash)).size>100)fail('La fusión superaría las 100 partidas. Retira una versión antigua tras respaldarla.');
   const keyValid=k=>keys.has(k)||(typeof k==='string'&&/^([\w-]+)\/(pc|party)\/-?\d+\/\d+$/.test(k)&&unreadable.has(k.split('/')[0]));

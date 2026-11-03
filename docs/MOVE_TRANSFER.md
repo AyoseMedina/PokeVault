@@ -2,8 +2,10 @@
 
 ## Español
 
-**Estado:** especificación autorizada expresamente por el usuario (2026-11-03),
-pendiente de implementar. Política: `pokevault-move-v1`.
+**Estado:** implementada localmente por fases, sin publicar el sitio. Política:
+`pokevault-move-v1`. Bloqueos conservadores y fuentes en
+[MOVE_IMPLEMENTATION.md](MOVE_IMPLEMENTATION.md), incluido renombrado por idioma
+del juego de destino (corrección autorizada del 2026-11-03).
 
 ### Objetivo
 
@@ -88,9 +90,14 @@ pokeemerald, pokefirered), pokeplatinum/pokeheartgold y PKHeX antes de escribir:
 - Especie (en generación I, índice interno, lista de especies y tipos de la
   estructura de caja). Experiencia, nivel, DVs/IVs, EVs, PID, OT, movimientos,
   PP, amistad y cintas se conservan salvo que la fuente primaria indique otra cosa.
-- Mote: si el Pokémon **no tiene mote**, pasa al nombre de la nueva especie en
-  su idioma, como hace el juego (generaciones I–III: comparación con el nombre
-  de especie; IV–V: bit de mote). Si tiene mote, se conserva intacto.
+- Mote: seguir el idioma del **juego de destino**. Esmeralda/RF/VH renombra solo
+  si coinciden idioma del Pokémon y juego, y nombre anterior de especie.
+  Rubí/Zafiro depende de revisión: si las variantes verificadas discrepan,
+  bloquear sin inventar la revisión. IV usa el nombre del cartucho cuando no
+  hay mote (bit de mote), aunque el Pokémon sea extranjero. En V, bloquear el
+  renombrado extranjero sin mote hasta verificarlo con una rutina primaria.
+  Los motes se conservan intactos. III pide idioma al importar; IV/V lo leen
+  de campos verificados. Si falta el idioma necesario, bloquear la evolución.
 - Habilidad (III–V): misma posición de habilidad, de la especie evolucionada.
 - Si la especie evolucionada aprende un movimiento **exactamente en el nivel
   actual**, se **bloquea** con una explicación: el juego pediría elegir y
@@ -196,7 +203,8 @@ bloqueada y `.pvault` con y sin la marca.
 
 ## English (summary)
 
-User-authorized policy `pokevault-move-v1`, not yet implemented. Transfers
+User-authorized policy `pokevault-move-v1`, implemented locally with documented
+conservative blocks (see MOVE_IMPLEMENTATION.md); no site deployment. Transfers
 **move** Pokémon: they are removed from the source save and placed in the
 destination, which replaces copy mode. Custom Crystal → GBA remains. Trade
 evolutions (Kadabra, Machoke, Graveler, Haunter; Boldore and Gurdurr in Gen V)
@@ -206,7 +214,10 @@ evolutions are included and consume the item. Held items travel with the Pokémo
 in same-generation moves when the destination game has the item (mail is
 blocked). Cross-generation item blocks stay until a mapping is verified. The
 destination Pokédex registers the received species (and the evolved one)
-in every copy the game keeps, with checksums recalculated. Un-nicknamed Pokémon take the new species name. Moves
+in every copy the game keeps, with checksums recalculated. Evolution names follow
+destination cartridge rules: Emerald/FRLG require matching Pokémon language;
+IV uses the cartridge name for unnicknamed foreign Pokémon. Ambiguous R/S ROM
+revisions and unverified foreign Gen V renaming block. Moves
 learned at the current level block the operation. The ZIP has
 `copiar-a-la-SD/<system>/` with every changed save under its exact imported
 filename and extension (.srm/.sav/.dsv, DSV footer intact). Used save versions

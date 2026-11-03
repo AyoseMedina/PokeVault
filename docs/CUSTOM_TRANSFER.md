@@ -47,10 +47,12 @@ La exportación debe reproducir exactamente los bytes revisados.
   en `customDetails.originalCaughtData`; el género del entrenador pasa a GBA.
   Cintas y concursos se inicializan a cero porque no existen en Cristal.
 
-Se bloquean huevos, objetos, MO, Pokémon fuera del PC, Mew/Celebi de evento,
+Se bloquean huevos, objetos sin equivalencia autorizada, MO, Pokémon fuera del PC, Mew/Celebi de evento,
 nombres incompatibles, datos inválidos, duplicados y destinos sin espacio o en
-cuarentena. Solo se escribe en casillas libres y sus checksums. No se borra el
-origen ni se actualizan la Pokédex o el progreso del destino. El original completo
+cuarentena. La política [mover](MOVE_TRANSFER.md) inserta en casillas libres,
+retira del resultado de origen, aplica evolución y registra la Pokédex. La
+amistad de llegada se restablece a 70; el renombrado sigue el idioma del juego
+GBA de destino. Se conservan íntegros los bytes importados. El original completo
 siempre acompaña al resultado: los campos que cambian no se pierden en el respaldo.
 
 No hay ruta directa II→IV/V ni conversiones hacia atrás. Esta implementación se
@@ -95,10 +97,12 @@ Exported bytes must match the review exactly.
   retained in `customDetails.originalCaughtData`; OT gender carries over.
   Ribbons and contest stats start at zero because Crystal has neither.
 
-Eggs, items, HMs, party Pokémon, Mew/Celebi events, incompatible names, invalid
+Eggs, items without approved mappings, HMs, party Pokémon, Mew/Celebi events, incompatible names, invalid
 data, duplicates, occupied slots and quarantined destinations are blocked. Only
-empty PC slots and corresponding checksums are written. Source Pokémon, dex
-flags and adventure progress remain untouched. Changed fields remain recoverable
+empty PC slots are used. The [move policy](MOVE_TRANSFER.md) removes Pokémon
+from source outputs, applies evolution and registers destination dex entries.
+Arrival friendship becomes 70; naming follows the GBA cartridge language.
+Imported bytes remain immutable. Changed fields remain recoverable
 from the complete original save included in the package.
 
 Direct II→IV/V and backward transfers remain blocked. Validation uses primary

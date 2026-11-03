@@ -30,7 +30,7 @@ export function refreshG4(b,game){const [gsize,ssize,start,footer]=fixtureLayout
 export function fixtureG4(game,{storageBase=0x40000,partyBase=0,box=0,slot=0}={}){
  const b=new Uint8Array(524288),[gsize,ssize,start,footer,trainer,party,boxStart,stride,names]=fixtureLayouts[game];
  for(const base of [0,0x40000]){
-  b.set(encodeDS(base===partyBase?'NUEVO':'ANTIGUO',4,16),base+trainer);set16(b,base+trainer+16,12345);
+  b.set(encodeDS(base===partyBase?'NUEVO':'ANTIGUO',4,16),base+trainer);set16(b,base+trainer+16,12345);b[base+trainer+0x19]=7;
   b[base+party-4]=1;b.set(encryptedReference(4),base+party);
   for(let i=0;i<18;i++)b.set(encodeDS('CAJA '+(i+1),4),base+start+names+i*40);
   for(const [o,size,counter] of [[base,gsize,base===partyBase?12:11],[base+start,ssize,base===storageBase?24:23]]){
@@ -42,7 +42,7 @@ export function fixtureG4(game,{storageBase=0x40000,partyBase=0,box=0,slot=0}={}
 }
 export function refreshG5(b,game){const blocks=F[game.endsWith('2')?'b2w2':'bw'];for(const [o,size,checksum,mirror] of blocks){const crc=crc16CCITT(b.subarray(o,o+size));set16(b,checksum,crc);set16(b,mirror,crc);}return b;}
 export function fixtureG5(game,{box=0,slot=0}={}){
- const b=new Uint8Array(524288);b.set(encodeDS('TESÉLIA',5,16),0x19404);set16(b,0x19414,54321);b[0x18E04]=1;b.set(encryptedReference(5),0x18E08);
+ const b=new Uint8Array(524288);b.set(encodeDS('TESÉLIA',5,16),0x19404);set16(b,0x19414,54321);b[0x1941E]=7;b[0x18E04]=1;b.set(encryptedReference(5),0x18E08);
  for(let i=0;i<24;i++)b.set(encodeDS('CAJA '+(i+1),5,20),4+i*40);
  b.set(encryptedReference(5),0x400+box*4096+slot*136);return refreshG5(b,game);
 }

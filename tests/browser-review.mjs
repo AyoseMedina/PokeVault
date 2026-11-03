@@ -29,7 +29,7 @@ try{
   }
   const read=page=>page.evaluate(async()=>{const v=await import('/vault.js'),db=await v.openVault();try{const state=await v.readVault(db),raw=await v.readVault(db,{raw:true});return {state,raw,version:db.version,blobs:await new Promise(r=>{const q=db.transaction('blobs').objectStore('blobs').count();q.onsuccess=()=>r(q.result);})};}finally{db.close();}});
   const nav=async(page,id)=>page.locator(`.sidebar [data-nav="${id}"]`).click();
-  const importSave=async(page,data=makeFixtureG3('firered',[makeDemoPK3(25,20,123)]))=>{await page.locator('[data-action="import"]').first().click();await page.selectOption('#import-game','firered');await page.setInputFiles('#save-file',{name:'new.sav',mimeType:'application/octet-stream',buffer:Buffer.from(data)});await page.click('#import-confirm');await page.locator('#modal-root .modal').waitFor({state:'hidden'});};
+  const importSave=async(page,data=makeFixtureG3('firered',[makeDemoPK3(25,20,123)]))=>{await page.locator('[data-action="import"]').first().click();await page.selectOption('#import-game','firered');await page.selectOption('#import-language','es');await page.selectOption('#import-language','es');await page.setInputFiles('#save-file',{name:'new.sav',mimeType:'application/octet-stream',buffer:Buffer.from(data)});await page.click('#import-confirm');await page.locator('#modal-root .modal').waitFor({state:'hidden'});};
   {
     const {ctx,page}=await setup(bank);
     assert.equal(await page.locator('[data-action="demo"]').count(),0,'A save with no Pokémon must not expose demo');
@@ -49,7 +49,7 @@ try{
     const {ctx,page}=await setup(); // Demo is open with an empty DB.
     // Simulate another tab importing a real empty save after the demo started.
     await page.evaluate(async bank=>{for(const x of [...bank.saves,...bank.backups])x.bytes=new Uint8Array(x.bytes);const v=await import('/vault.js'),db=await v.openVault();await v.writeVault(db,bank,0);db.close();},bank);
-    await page.locator('[data-action="import"]').first().click();await page.setInputFiles('#save-file',{name:'new.sav',mimeType:'application/octet-stream',buffer:Buffer.from(makeFixtureG3('emerald',[makeDemoPK3(25,20,1)]))});await page.click('#import-confirm');await page.waitForFunction(()=>document.querySelector('#import-status').textContent.includes('banco real'));assert.equal((await read(page)).state.saves[0].hash,hash);
+    await page.locator('[data-action="import"]').first().click();await page.selectOption('#import-language','es');await page.setInputFiles('#save-file',{name:'new.sav',mimeType:'application/octet-stream',buffer:Buffer.from(makeFixtureG3('emerald',[makeDemoPK3(25,20,1)]))});await page.click('#import-confirm');await page.waitForFunction(()=>document.querySelector('#import-status').textContent.includes('banco real'));assert.equal((await read(page)).state.saves[0].hash,hash);
     await page.locator('#modal-root [data-close]').first().click();await page.click('[data-action="exit-demo"]');assert.equal(await page.locator('[data-action="demo"]').count(),0);assert.equal((await read(page)).state.saves.length,1);await ctx.close();
     console.log('PASS: concurrent real bank cannot be replaced by a demo import; exiting demo reloads saved data');
   }

@@ -9,7 +9,7 @@
 
 # PokéVault · Your classic HOME
 
-A personal bank for collecting, organizing and preparing copies of your generation I–V Pokémon, designed for R36S / ArkOS. **Your save files are processed and stored in your browser.** No save uploads, analytics or JavaScript runtime dependencies.
+A personal bank for collecting, organizing and preparing moves of your generation I–V Pokémon, designed for R36S / ArkOS. **Your save files are processed and stored in your browser.** No save uploads, analytics or JavaScript runtime dependencies.
 
 The code is public and you can host the application on your own computer or server. Docker includes **personal sign-in validated server-side**, and Portainer deployment uses your existing Nginx with internal port 8080. Save files are generated locally and installed on the console manually. The bank interface is in Spanish; sign-in and documentation support Spanish and English. Access-server dependencies are separate from browser code.
 
@@ -21,7 +21,7 @@ The code is public and you can host the application on your own computer or serv
 | --- | --- |
 | Import adventures | Read parties and boxes from 16 games, check structures and checksums, and preserve original bytes with SHA-256. |
 | Organize your bank | Create virtual boxes with 30 slots, search, filter, sort, favorite Pokémon and add notes. Bank organization does not alter the save's boxes. |
-| Prepare copies | Select PC Pokémon, review the route and changes, and write only to empty slots in a new save file. |
+| Move Pokémon | Remove them from source outputs and insert them into empty destination slots, with reviewed evolutions and Pokédex updates. |
 | Keep backups | Export a portable `.pvault` bank, merge backups, and restore the last 25 organization snapshots. |
 | Install with context | Download a ZIP with originals, output, manifest and manual R36S / ArkOS instructions. |
 | Explore first | Try a demo with synthetic, non-playable data before importing your own saves. |
@@ -77,13 +77,13 @@ Party Pokémon are also read. DS supports raw SAV/SRM and DSV with recognized 40
 
 Pokédex descriptions are reference text bundled locally, not extracted from the save. The pinned source has English text for these editions but no Spanish; the fallback is explicitly labeled and never substitutes another game.
 
-## Copy exports
+## Move exports
 
-Every operation preserves source Pokémon and saves and produces a new file. Copies do not trigger trade evolutions, simulate a Link Cable or official transfer minigames, or change the Pokédex, bag or progress.
+[pokevault-move-v1](docs/MOVE_TRANSFER.md) produces one output per source and one for the destination. Pokémon leave the source outputs; imported bytes remain immutable. ZIP files retain exact names/extensions under `copiar-a-la-SD/<gb|gbc|gba|nds>/`. Install **all outputs or none**, checking every SD `before` hash. Same-generation, I→II and custom II→III moves trigger trade evolution; III→IV/IV→V do not. Destination dex registration and [generated item mappings](docs/ITEM_TRANSFER.md) apply; IV→V returns items to the source bag. No Link Cable or minigame is simulated.
 
 | Route | Support |
 | --- | --- |
-| I→I, II→II, III→III, IV→IV, V→V | Same-generation copying with language, form and item restrictions. |
+| I→I, II→II, III→III, IV→IV, V→V | Same-generation moves with trade evolution and language/form/item restrictions. |
 | I→II | Time Capsule conversion: raw data, names, DVs, EVs and EXP preserved; friendship 70 and native catch-rate-to-item mapping. |
 | III→IV | Pal Park: PID, ID32, EXP, EVs, IVs, Gen III ability, nature, ribbons and names; location 55, explicit date, friendship 70 and Gen IV PP. |
 | IV→V | Poké Transfer: PID, IVs, nature, names and data; location 30001, explicit date, friendship 70 and Gen V PP. |
@@ -91,17 +91,29 @@ Every operation preserves source Pokémon and saves and produces a new file. Cop
 | Crystal II→III | Optional custom conversion to Ruby/Sapphire/Emerald/FireRed/LeafGreen; generated fields and adapted stats require review. [Policy and limits](docs/CUSTOM_TRANSFER.md#english). |
 | Direct II→IV/V and backward transfers | Blocked. |
 
-Eggs, Pokémon outside the PC, source held items, quarantined destinations, duplicates, occupied slots and incompatible languages are blocked. Conversions reject HMs instead of deleting them, fateful-encounter events, unsupported forms and lossy text conversions. This is a conservative policy, not competitive legality analysis. GTS, Day Care, Pokéwalker and Battle Box data are not extracted.
+Eggs, Pokémon outside the PC, mail and incompatible items, quarantined destinations, duplicates, occupied slots and incompatible languages are blocked. Conversions reject HMs instead of deleting them, fateful-encounter events, unsupported forms and lossy text conversions. This is a conservative policy, not competitive legality analysis. GTS, Day Care, Pokéwalker and Battle Box data are not extracted.
 
-The conversion date is fixed during review using Atlantic/Canary time. Exported bytes must exactly match the reviewed result. The ZIP includes originals, output, instructions and a manifest with file and entity hashes, route, date and changes.
+The conversion date is fixed during review using Atlantic/Canary time. Exported bytes must exactly match the reviewed result. The ZIP includes originals, all outputs, instructions and a manifest with file and entity hashes, route, date and changes.
+
+Used save versions become consumed: selection and reimport are blocked,
+including files from `originales/`. The ledger survives `.pvault` backups and
+save retirement. **Anular exportación** requires confirming no output was
+installed and records the cancellation. Import the new saves to continue.
+This local guard does not prevent external file/browser manipulation.
+
+Select **cartridge language** when importing GB/GBA; IV/V read it from the save.
+Legacy GBA banks must confirm it before a potentially renamed evolution.
+Pending blocks: non-base Gen V dex forms, foreign unnicknamed Gen V evolutions,
+and R/S renaming that differs by unidentified ROM revision.
+[Primary sources and implementation limits](docs/MOVE_IMPLEMENTATION.md).
 
 ## Write safeguards
 
 - Only empty slots are used. The output is parsed again, each inserted Pokémon is checked and existing Pokémon must remain unchanged. A write-range mask blocks changes outside authorized regions.
 - Yellow updates the active box and mirror, plus main, bank and per-box checksums. Uninitialized inactive boxes are blocked.
-- Crystal updates lists and the active mirror, preserving the previous main backup together with its separate checksum. PC boxes are outside the main checksum.
-- Gen III updates only PC slots and their sector checksums, keeping the other internal save copy.
-- Gen IV writes to active storage and updates its CRC; HGSS records the changed box. General data and the previous copy remain intact.
+- Crystal updates lists and the active mirror, updating authorized dex flags in both main/backup copies and their checksums. PC boxes are outside the main checksum.
+- Gen III updates PC slots, dex mirrors and sector checksums, keeping the other internal save copy.
+- Gen IV writes to active storage and updates its CRC; HGSS records the changed box. The general dex and IV→V source bag are updated; the previous partition is retained.
 - Gen V updates the box block, its local/mirrored checksum and the checksum-table CRC. Backup and auxiliary data are retained.
 - DSV output keeps the exact original length and footer and is exported as DSV.
 - A copy is retained on import and another before export. The bank keeps organization restore points and a portable `.pvault` backup. A revision check prevents overwriting changes from another tab.
@@ -127,6 +139,7 @@ IndexedDB and isolated browser regressions: `npm run test:browser`. See [setup a
 | `dist/app.js` | UI, IndexedDB, bank, backups, review and export. |
 | `dist/core.js` | GB/GBA reading, shared validation, SHA-256, ZIP and Gen III writing. |
 | `dist/formats.js` | Yellow/DS reading, DSV containers and DS entity encryption. |
+| `dist/move*.js` | Move policy, items, evolutions and Pokédex; reproducible tables. |
 | `dist/transfer.js` | Routes, conversions and GB/DS copy writing. |
 | `dist/*data.js` | Species, text and conversion tables with documented provenance. |
 | `dist/styles.css`, `dist/sprites/` | Responsive layout and 649 local sprites. |

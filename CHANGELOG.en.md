@@ -5,6 +5,20 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Move phase 3 and cartridge-language correction (not deployed)
+
+- Generated held-item mappings, II→III/III→IV conversion, evolution consumption
+  and IV→V source-bag returns, with native limits, sorting, quantities and CRC.
+  Mail and item-bearing III→IV→V moves are blocked.
+- Destination cartridge naming: explicit GB/GBA language, verified IV/V fields,
+  legacy GBA confirmation, foreign-name preservation in Emerald/FRLG and IV
+  cartridge names for unnicknamed Pokémon. Ambiguous R/S revisions and foreign
+  unnicknamed Gen V evolutions block pending verification; nicknames stay exact.
+- Unit coverage plus Chromium custom item-evolution flow, mobile review, ZIP,
+  consumption, reimport protection, backup/restore and confirmed cancellation.
+- Updated bilingual guides, ZIP instructions, routes, README and primary sources.
+  No site deployment.
+
 ## 2026-11-03 · Move phase 2 (not deployed)
 
 - Route-specific trade evolutions, exact names, evolved abilities, Everstone

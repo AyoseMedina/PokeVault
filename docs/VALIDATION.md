@@ -59,6 +59,7 @@ ignorado; no son dependencias de la aplicación ni entran en Docker:
 npm install --prefix .test-output/ui-check --no-save playwright@1.64.1
 npx --prefix .test-output/ui-check playwright install chromium
 npm run test:browser
+npm run test:browser:move
 ```
 
 La suite comprueba el banco con una partida sin Pokémon, demo y cambios desde
@@ -71,6 +72,23 @@ importación, selección, prevalidación, revisión, respaldo y descarga ZIP.
 
 Las pruebas de Chromium no equivalen a probar Safari/iOS, el teclado virtual o
 una consola física. Tampoco simulan un ataque distribuido de gran volumen.
+
+La suite `browser-move.mjs` recorre importación con idioma obligatorio,
+Cristal→GBA con objeto y evolución, revisión a 390 px, respaldo y ZIP validado
+con Python zipfile (nombres exactos, hashes, origen retirado, destino y Pokédex),
+versiones consumidas, reimportación bloqueada, fusión de respaldo antiguo sin
+liberar marcas, restauración en otro perfil y anulación confirmada con recarga.
+Las rutas de las cinco generaciones, evoluciones, idioma y bolsillos se prueban
+también con Node. No se recorrió cada combinación de ruta/objeto/idioma en la
+interfaz, ni Firefox/Safari ni un móvil físico; tampoco instalación en consola
+o emulador real. No se usa el banco ni las credenciales reales del usuario.
+
+The move browser suite covers required cartridge language, Crystal→GBA item
+evolution, mobile-width review, independently validated ZIP, consumed versions,
+reimport protection, old-backup merge, isolated restore and confirmed cancellation.
+Node tests cover all generations, evolution branches, languages and bag pockets.
+Every route/item/language combination was not replayed in the UI. Firefox,
+Safari, physical phones, consoles and emulator gameplay remain untested.
 
 ## English
 

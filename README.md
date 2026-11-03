@@ -9,7 +9,7 @@
 
 # PokéVault · Tu HOME clásico
 
-Un banco personal para reunir, organizar y preparar copias de tus Pokémon de generaciones I–V, pensado para R36S / ArkOS. **Tus guardados se procesan y conservan en tu navegador.** No se suben partidas, no hay analítica ni dependencias JavaScript de ejecución.
+Un banco personal para reunir, organizar y preparar movimientos de tus Pokémon de generaciones I–V, pensado para R36S / ArkOS. **Tus guardados se procesan y conservan en tu navegador.** No se suben partidas, no hay analítica ni dependencias JavaScript de ejecución.
 
 El código es público y la aplicación se puede alojar en tu propio equipo o servidor. Docker incluye un **login personal validado en el servidor**, y el despliegue en Portainer utiliza tu Nginx existente con el puerto interno 8080. Los archivos de guardado se generan localmente y se instalan manualmente en la consola. La interfaz del banco está en español; el login y la documentación están disponibles en español e inglés. Las dependencias del servidor de acceso están separadas del código del navegador.
 
@@ -21,7 +21,7 @@ El código es público y la aplicación se puede alojar en tu propio equipo o se
 | --- | --- |
 | Importar aventuras | Leer equipo y cajas de 16 juegos, comprobar estructura y checksums y conservar los bytes originales con SHA-256. |
 | Organizar tu banco | Crear cajas virtuales de 30 casillas, buscar, filtrar, ordenar, marcar favoritos y añadir notas. La organización no altera las cajas de la partida. |
-| Preparar copias | Elegir Pokémon del PC, revisar ruta y cambios y escribir solo en casillas libres de un guardado nuevo. |
+| Mover Pokémon | Retirarlos del resultado de origen e insertarlos en casillas libres del destino, con revisión, evoluciones y Pokédex. |
 | Guardar respaldos | Exportar un banco portátil `.pvault`, fusionar respaldos y recuperar los últimos 25 estados de organización. |
 | Instalar con contexto | Descargar un ZIP con originales, resultado, manifiesto y guía manual para R36S / ArkOS. |
 | Explorar primero | Usar una demo con datos sintéticos no jugables antes de importar tus partidas. |
@@ -74,13 +74,13 @@ El login protege el acceso web; no cifra IndexedDB ni separa cuentas dentro de u
 
 Los textos de Pokédex son referencias incluidas localmente, no extraídas del guardado. La fuente fijada incluye inglés para estas ediciones, pero no español; se indica el idioma y nunca se sustituye por texto de otro juego.
 
-## Exportación de copias
+## Exportación de movimientos
 
-Todas las operaciones conservan los Pokémon y guardados de origen y producen un archivo nuevo. No activan evoluciones por intercambio, no simulan un cable Link ni los minijuegos oficiales, y no cambian la Pokédex, bolsa ni progreso.
+La política [pokevault-move-v1](docs/MOVE_TRANSFER.md) genera un archivo por origen y otro para el destino. Los Pokémon salen de los resultados de origen. Los bytes importados permanecen intactos. El ZIP conserva nombres/extensiones exactos en `copiar-a-la-SD/<gb|gbc|gba|nds>/`: instala **todos los resultados o ninguno**, comprobando cada hash `before` de la SD. Evoluciones activas en misma generación, I→II y II→III personalizada; nunca en III→IV/IV→V. La Pokédex registra especies recibidas y evolucionadas. Los objetos siguen [tablas generadas](docs/ITEM_TRANSFER.md); IV→V los devuelve a la mochila del origen. No se simulan cable Link ni minijuegos.
 
 | Ruta | Soporte |
 | --- | --- |
-| I→I, II→II, III→III, IV→IV, V→V | Copia dentro de la generación, con restricciones de idioma/formas/objetos |
+| I→I, II→II, III→III, IV→IV, V→V | Movimiento con evolución por intercambio y restricciones de idioma/formas/objetos |
 | I→II | Conversión de Cápsula del Tiempo: raw, nombres, DVs, EVs y EXP conservados; amistad70 y mapa nativo de tasa de captura a objeto |
 | III→IV | Parque Compi: PID, ID32, EXP, EVs, IVs, habilidad GenIII, naturaleza, cintas y nombres; procedencia55, fecha explícita, amistad70 y PP GenIV |
 | IV→V | Pokétransfer: PID, IVs, naturaleza, nombres y datos; procedencia30001, fecha explícita, amistad70 y PP GenV |
@@ -88,17 +88,29 @@ Todas las operaciones conservan los Pokémon y guardados de origen y producen un
 | Cristal II→III | Conversión personalizada opcional a Rubí/Zafiro/Esmeralda/Rojo Fuego/Verde Hoja; revisión de campos generados y estadísticas adaptadas. [Política y límites](docs/CUSTOM_TRANSFER.md). |
 | Saltos directos II→IV/V y envíos hacia atrás | Bloqueados |
 
-Se bloquean huevos, Pokémon fuera del PC, objetos equipados en origen, destinos en cuarentena, duplicados, casillas ocupadas e idiomas no compatibles. Las conversiones rechazan MO en vez de borrarlas, eventos con fateful, formas no soportadas y recodificaciones con pérdida. La política es conservadora; no es un análisis de legalidad competitiva. No se extraen GTS, guardería, Pokéwalker o caja de combate.
+Se bloquean huevos, Pokémon fuera del PC, Cartas y objetos incompatibles, destinos en cuarentena, duplicados, casillas ocupadas e idiomas no compatibles. Las conversiones rechazan MO en vez de borrarlas, eventos con fateful, formas no soportadas y recodificaciones con pérdida. La política es conservadora; no es un análisis de legalidad competitiva. No se extraen GTS, guardería, Pokéwalker o caja de combate.
 
-La fecha se fija en la revisión, usando Atlantic/Canary. Los bytes producidos al exportar deben coincidir exactamente con los aprobados. El ZIP incluye originales, resultado, instrucciones y manifiesto con hashes de archivos y entidades, ruta, fecha y cambios.
+La fecha se fija en la revisión, usando Atlantic/Canary. Los bytes producidos al exportar deben coincidir exactamente con los aprobados. El ZIP incluye originales, todos los resultados, instrucciones y manifiesto con hashes de archivos y entidades, ruta, fecha y cambios.
+
+Las versiones utilizadas quedan consumidas: no se seleccionan ni reimportan,
+incluso desde `originales/`. La marca se conserva en `.pvault` y tras retirar una
+versión del banco. **Anular exportación** requiere confirmar que no se instaló
+ningún resultado y queda registrado. Importa los nuevos guardados para continuar.
+Este control es local: no impide manipular archivos o borrar bancos externamente.
+
+Indica el **idioma del juego** al importar GB/GBA; IV/V lo leen del guardado.
+Los bancos GBA antiguos piden confirmarlo antes de renombrar una evolución.
+Bloqueos pendientes: formas no base con registro de Pokédex V, renombrado de
+evoluciones extranjeras sin mote en V y renombrados R/S ambiguos según revisión
+de ROM. [Fuentes, comportamiento y límites](docs/MOVE_IMPLEMENTATION.md).
 
 ## Garantías de escritura
 
 - Solo se insertan en huecos libres. Se analiza el resultado, se comprueba cada Pokémon insertado y que los anteriores sigan iguales. Una máscara de rangos bloquea cambios fuera de las zonas autorizadas.
 - Amarillo actualiza caja activa/espejo y checksums principal, de banco y por caja. Las cajas inactivas sin inicializar se bloquean.
-- Cristal actualiza listas y espejo activo; conserva unidos el backup principal anterior y su checksum separado. Los PC están fuera del checksum principal.
-- Gen III actualiza únicamente casillas PC y checksums de sus sectores; conserva la otra copia interna.
-- Gen IV escribe en el almacenamiento activo y actualiza su CRC; HGSS registra la caja modificada. Datos generales y copia anterior se conservan.
+- Cristal actualiza listas y espejo activo; actualiza las marcas Pokédex autorizadas en principal/respaldo y ambos checksums. Los PC están fuera del checksum principal.
+- Gen III actualiza casillas PC, Pokédex y espejos y sus checksums; conserva la otra copia interna.
+- Gen IV escribe en el almacenamiento activo y actualiza su CRC; HGSS registra la caja modificada. Se actualiza la Pokédex general y, en el origen IV→V, la mochila; la partición anterior se conserva.
 - Gen V actualiza el bloque de caja, su checksum local/espejo y el CRC de la tabla de checksums. Se conserva el backup y datos auxiliares.
 - DSV mantiene longitud y pie exactos; se exporta como DSV.
 - Se conserva una copia al importar y otra antes de exportar. El banco guarda puntos de restauración de organización y un respaldo portátil .pvault. El control de revisión evita sobrescribir cambios desde otra pestaña.
@@ -124,6 +136,7 @@ Pruebas del banco en IndexedDB y navegador aislado: `npm run test:browser`. Cons
 | `dist/app.js` | Interfaz, IndexedDB, banco, respaldos, revisión y exportación. |
 | `dist/core.js` | Lectura GB/GBA, validación común, SHA-256, ZIP y escritura Gen III. |
 | `dist/formats.js` | Lectura de Amarillo/DS, contenedores DSV y cifrado de entidades DS. |
+| `dist/move*.js` | Movimiento, objetos, evoluciones y Pokédex; tablas reproducibles. |
 | `dist/transfer.js` | Rutas, conversiones y escritura de copias en GB/DS. |
 | `dist/*data.js` | Tablas de especies, texto y conversión con procedencia documentada. |
 | `dist/styles.css`, `dist/sprites/` | Diseño adaptable y 649 sprites locales. |

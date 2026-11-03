@@ -17,6 +17,18 @@ Abre la URL de tu despliegue y utiliza **Menú** para acceder a las seis seccion
 
 El banco se guarda en el navegador de cada dispositivo. Para llevarlo del ordenador al móvil, exporta un `.pvault` en **Copias de seguridad** y restáuralo en el móvil. El login no sincroniza los bancos. `localhost` solo funciona en el propio equipo; en el teléfono utiliza la URL accesible de tu despliegue con Nginx.
 
+## Importar y mover partidas
+
+Al importar GB/GBA, elige el idioma del **juego**, no el de sus Pokémon. DS lo
+lee del guardado. Los bancos GBA antiguos piden confirmarlo cuando una evolución
+pueda cambiar el nombre. Revisa todos los cambios antes de crear el ZIP.
+
+Instala **todos** los archivos de `copiar-a-la-SD` o ninguno, conservando sus
+nombres y extensiones exactos y comprobando cada hash previo del manifiesto.
+Las versiones usadas quedan consumidas. Para continuar importa los resultados;
+si no instalaste nada, puedes confirmar **Anular exportación** en el historial.
+[Guía y límites](docs/MOVE_IMPLEMENTATION.md).
+
 ## Desarrollo local sin login
 
 Este servidor Python conserva el modo estático original y no incluye acceso
