@@ -4,7 +4,8 @@ import { GAMES, parseSave } from '../dist/core.js';
 import { consumedLedger } from '../dist/consumed.js';
 import { HASH, VaultError } from './vault-store.js';
 
-export const SAVE_SIZES = new Set([32768, 131072, 524288, 524328, 524410]);
+// 32816/32812: Crystal from Visual Boy Advance GX with its clock tail (dist/core.js VBA_RTC_TAILS).
+export const SAVE_SIZES = new Set([32768, 32812, 32816, 131072, 524288, 524328, 524410]);
 const MAX_SAVES = 100;
 const bad = (message, code = 'invalid_state') => { throw new VaultError(code, message, 422); };
 const isObject = v => v && typeof v === 'object' && !Array.isArray(v);

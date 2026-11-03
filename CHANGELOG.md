@@ -5,6 +5,16 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Conversor R36S ⇄ Wii (sin despliegue)
+
+- «Convertir R36S ⇄ Wii» en Mis partidas: `.srm` (RetroArch) ⇄ `.sav` (Visual Boy
+  Advance GX) para Game Boy y GBA, con nombre exacto y verificación de los Pokémon.
+- Cristal conserva el reloj: el `.rtc` de gambatte se convierte al bloque de reloj
+  de VBA GX y al revés (ZIP con `.srm` y `.rtc`). Formatos verificados en el código
+  de VBA GX y gambatte-libretro.
+- Se importan y mueven directamente los `.sav` de Cristal de VBA GX, con su reloj
+  intacto (como el pie de los `.dsv`).
+
 ## 2026-11-03 · Animaciones de intercambio y evolución (sin despliegue)
 
 - Al preparar un movimiento se ve viajar a cada Pokémon (Intercambio, Cápsula del

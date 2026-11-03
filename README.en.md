@@ -41,6 +41,7 @@ documentation are in Spanish and English.
 | Pokédex | Real seen/caught flags per save and descriptions: exact English text of the edition, or Spanish from a named later edition. [Coverage](docs/POKEDEX.md). |
 | Server-side bank | AES-256-GCM, revisions with cross-device conflict control and 50 restorable versions. [Design](docs/SERVER_VAULT.md). |
 | Account and email | Password change and link-based recovery, security notices and optional messages (weekly digest, anniversaries, moves, backup reminder). [Details](docs/ACCOUNT_EMAIL.md). |
+| R36S ⇄ Wii | `.srm` ⇄ `.sav` converter for Visual Boy Advance GX; Crystal also carries its clock (`.rtc`). [How to use it](GETTING_STARTED.md#r36s--wii-visual-boy-advance-gx). |
 | Backups | Portable `.pvault` with originals, history and consumed versions; organization restore points. |
 | Try it first | Demo with synthetic, non-playable data, including the trade and evolution animation. |
 
@@ -75,7 +76,7 @@ it; the browser copy is deleted only after you confirm.
 ## Games and formats
 
 - Gen I: international Yellow, 32 KiB, 12 boxes and party.
-- Gen II: international Crystal, 32 KiB, 14 boxes and party.
+- Gen II: international Crystal, 32 KiB, 14 boxes and party; also Visual Boy Advance GX (Wii) `.sav` files with their clock, which is kept.
 - Gen III: international Ruby, Sapphire, Emerald, FireRed and LeafGreen, 128 KiB, 14 boxes and party.
 - Gen IV: Diamond, Pearl, Platinum, HeartGold and SoulSilver, 512 KiB, 18 boxes and party.
 - Gen V: Black, White, Black 2 and White 2, 512 KiB, 24 boxes and party.
@@ -159,6 +160,7 @@ Portainer builds straight from Git.
 | `dist/transfer.js`, `dist/custom-transfer.js` | Routes and conversions, including Crystal → GBA. |
 | `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Bank in IndexedDB or on the server and `.pvault` backups. |
 | `dist/animations.js`, `dist/pokedex*.js` | Animations and Pokédex with local descriptions. |
+| `dist/emulator-convert.js` | R36S ⇄ Wii converter, including the Crystal clock. |
 | `dist/*data.js`, `dist/sprites/` | Tables with provenance and sprites 1–649 (static, shiny and animated). |
 | `server/` | Sign-in, encrypted bank (`vault-*`), account and email (`account-store`, `mailer`, `notifications`), public pages and `vault-admin.mjs`. |
 | `scripts/` | Reproducible generators for tables, Pokédex and sprites. |

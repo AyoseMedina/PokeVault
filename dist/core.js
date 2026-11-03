@@ -23,8 +23,11 @@ export const GAMES = {
   white2: {name:'Blanco 2', generation:5, region:'Teselia', color:'#a58879', icon:646}
 };
 export const generationLabel=g=>['','I','II','III','IV','V'][g]||String(g);
-export function saveRequirements(game){const g=GAMES[game];return g?.generation>=4?'512 KiB · .sav / .srm / .dsv reconocido':g?.generation===3?'128 KiB · .sav / .srm':'32 KiB · .sav / .srm';}
-export function validFileSize(size,game){return GAMES[game]?.generation>=4?[524288,524328,524410].includes(size):size===(GAMES[game]?.generation===3?131072:32768);}
+// Visual Boy Advance GX (Wii) appends the MBC3 clock to Crystal saves: 10 ints + time_t,
+// 48 bytes (44 with a 32-bit time_t). Source: dborth/vbagx GB.cpp MemgbWriteSaveMBC3.
+export const VBA_RTC_TAILS=[48,44];
+export function saveRequirements(game){const g=GAMES[game];return g?.generation>=4?'512 KiB · .sav / .srm / .dsv reconocido':g?.generation===3?'128 KiB · .sav / .srm':game==='crystal'?'32 KiB · .sav / .srm (también .sav de VBA GX con reloj)':'32 KiB · .sav / .srm';}
+export function validFileSize(size,game){return GAMES[game]?.generation>=4?[524288,524328,524410].includes(size):game==='crystal'?[32768,...VBA_RTC_TAILS.map(n=>32768+n)].includes(size):size===(GAMES[game]?.generation===3?131072:32768);}
 export const TYPE_NAMES = {1:'Normal',2:'Lucha',3:'Volador',4:'Veneno',5:'Tierra',6:'Roca',7:'Bicho',8:'Fantasma',9:'Acero',10:'Fuego',11:'Agua',12:'Planta',13:'Eléctrico',14:'Psíquico',15:'Hielo',16:'Dragón',17:'Siniestro'};
 const SECTOR=0x1000, CHUNK=0xF80, GROUP=14*SECTOR;
 const ORDERS=['GAEM','GAME','GEAM','GEMA','GMAE','GMEA','AGEM','AGME','AEGM','AEMG','AMGE','AMEG','EGAM','EGMA','EAGM','EAMG','EMGA','EMAG','MGAE','MGEA','MAGE','MAEG','MEGA','MEAG'];
@@ -181,7 +184,10 @@ export function parseG2(b,language='es'){
 export function parseSave(bytes,game,language='es'){
   const b=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
   assert(GAMES[game],'Selecciona un juego compatible.');
-  const parsed=game==='yellow'?parseYellow(b,language,levelFrom):DS_LAYOUTS[game]?parseNDS(b,game,levelFrom):game==='crystal'?parseG2(b,language):parseG3(b,game);
+  // A VBA GX clock tail is kept byte for byte, like a DSV footer; only the 32 KiB battery is parsed.
+  const tail=game==='crystal'&&VBA_RTC_TAILS.includes(b.length-32768)?b.length-32768:0;
+  const parsed=game==='yellow'?parseYellow(b,language,levelFrom):DS_LAYOUTS[game]?parseNDS(b,game,levelFrom):game==='crystal'?parseG2(tail?b.subarray(0,32768):b,language):parseG3(b,game);
+  if(tail){parsed.container=`SAV · Visual Boy Advance GX con reloj (${tail} B); original íntegro`;parsed.rtcTail=tail;parsed.checks.unshift({label:'Reloj de VBA GX',ok:true,detail:`${tail} bytes conservados sin cambios`});}
   parsed.pokedex=readPokedex(b,game,parsed);
   return parsed;
 }

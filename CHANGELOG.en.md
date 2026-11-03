@@ -5,6 +5,16 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · R36S ⇄ Wii converter (not deployed)
+
+- "Convertir R36S ⇄ Wii" in Saves: `.srm` (RetroArch) ⇄ `.sav` (Visual Boy Advance
+  GX) for Game Boy and GBA, with exact names and Pokémon verification.
+- Crystal keeps its clock: the gambatte `.rtc` becomes the VBA GX clock tail and
+  back (ZIP with `.srm` and `.rtc`). Formats verified against VBA GX and
+  gambatte-libretro code.
+- VBA GX Crystal `.sav` files are imported and moved directly, clock intact
+  (like the DSV footer).
+
 ## 2026-11-03 · Trade and evolution animations (not deployed)
 
 - Preparing a move shows each Pokémon travelling (trade, Time Capsule, Pal Park,

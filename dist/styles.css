@@ -46,3 +46,5 @@
 .mode-reduced.phase-arrive .anim-to,.mode-reduced.phase-evolve .evo-new{opacity:1;transform:none;transition:opacity .3s}
 .mode-reduced.phase-evolve .evo-old{opacity:0}
 @media (max-width:560px){.trade-stage{grid-template-columns:1fr;gap:6px}.trade-track{height:40px}.trade-slot{height:84px}.trade-slot img{width:76px;height:76px}}
+
+.heading-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}

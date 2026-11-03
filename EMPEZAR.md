@@ -282,6 +282,26 @@ GBA y activa **Cristal → GBA personalizada**. Revisa identidad generada, DVs/I
 entrenamiento y procedencia sintética antes de exportar. El ZIP conserva ambos
 originales. Consulta la [política personalizada y sus límites](docs/CUSTOM_TRANSFER.md).
 
+## R36S ⇄ Wii (Visual Boy Advance GX)
+
+En **Mis partidas → Convertir R36S ⇄ Wii** conviertes un guardado de Game Boy o
+GBA entre la R36S (RetroArch, `.srm`) y la Wii (VBA GX, `.sav`). No toca el
+archivo original ni tu banco, y comprueba que el resultado tiene los mismos Pokémon.
+
+- **GBA y Amarillo:** los datos son idénticos; solo cambia la extensión.
+- **Cristal tiene reloj.** En la R36S va en un archivo aparte, `<juego>.rtc`, junto
+  al `.srm`; VBA GX lo guarda al final del `.sav`. Hacia la Wii, el conversor te
+  **pide el `.rtc`** y genera el `.sav` con el reloj dentro. Hacia la R36S, te da
+  un ZIP con el `.srm` y el `.rtc`: copia los dos. El reloj sigue corriendo mientras
+  la partida está en la otra consola. Sin `.rtc`, Cristal pedirá ajustar la hora.
+- El nombre del archivo se conserva exacto, para que coincida con la ROM.
+- Si VBA GX guarda un GBA de 64 KiB, elige «Flash 128K» para Pokémon y vuelve a guardar.
+- PokéVault también importa y mueve directamente los `.sav` de Cristal de la Wii y
+  conserva su reloj intacto.
+
+Fuentes: código de VBA GX y del núcleo gambatte de RetroArch, citado en
+`dist/emulator-convert.js`.
+
 ## Banco en el servidor (Docker)
 
 Con Docker/Node, el banco completo (partidas, respaldos, cajas, notas, historial y

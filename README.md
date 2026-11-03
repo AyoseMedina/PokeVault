@@ -40,6 +40,7 @@ SMTP que configures para el correo.
 | Consultar la Pokédex | Vistos/capturados reales por partida y descripciones: inglés exacto de la edición o español de una edición posterior indicada. [Cobertura](docs/POKEDEX.md). |
 | Banco en el servidor | AES-256-GCM, revisiones con control de conflictos entre dispositivos y 50 versiones restaurables. [Diseño](docs/SERVER_VAULT.md). |
 | Cuenta y correo | Cambio y recuperación de contraseña por enlace, avisos de seguridad y mensajes opcionales (resumen semanal, aniversarios, movimientos, recordatorio de respaldo). [Detalles](docs/ACCOUNT_EMAIL.md). |
+| R36S ⇄ Wii | Conversor `.srm` ⇄ `.sav` para Visual Boy Advance GX; en Cristal lleva también el reloj (`.rtc`). [Cómo se usa](EMPEZAR.md#r36s--wii-visual-boy-advance-gx). |
 | Respaldos | `.pvault` portátil con originales, historial y versiones consumidas; puntos de restauración de la organización. |
 | Explorar primero | Demo con datos sintéticos no jugables, incluida la animación de intercambio y evolución. |
 
@@ -77,7 +78,7 @@ Si ya tenías un banco en el navegador, al entrar en modo servidor la web ofrece
 ## Juegos y formatos
 
 - Gen I: Amarillo internacional, 32 KiB, 12 cajas y equipo.
-- Gen II: Cristal internacional, 32 KiB, 14 cajas y equipo.
+- Gen II: Cristal internacional, 32 KiB, 14 cajas y equipo; también el `.sav` de Visual Boy Advance GX (Wii) con su reloj, que se conserva.
 - Gen III: Rubí, Zafiro, Esmeralda, Rojo Fuego y Verde Hoja internacionales, 128 KiB, 14 cajas y equipo.
 - Gen IV: Diamante, Perla, Platino, HeartGold y SoulSilver, 512 KiB, 18 cajas y equipo.
 - Gen V: Negro, Blanco, Negro 2 y Blanco 2, 512 KiB, 24 cajas y equipo.
@@ -161,6 +162,7 @@ Actions: Portainer construye directamente desde Git.
 | `dist/transfer.js`, `dist/custom-transfer.js` | Rutas y conversiones, incluida Cristal → GBA. |
 | `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Banco en IndexedDB o en el servidor y respaldos `.pvault`. |
 | `dist/animations.js`, `dist/pokedex*.js` | Animaciones y Pokédex con descripciones locales. |
+| `dist/emulator-convert.js` | Conversor R36S ⇄ Wii, incluido el reloj de Cristal. |
 | `dist/*data.js`, `dist/sprites/` | Tablas con procedencia y sprites 1–649 (estáticos, variocolor y animados). |
 | `server/` | Login, banco cifrado (`vault-*`), cuenta y correo (`account-store`, `mailer`, `notifications`), páginas públicas y `vault-admin.mjs`. |
 | `scripts/` | Generadores reproducibles de tablas, Pokédex y sprites. |
