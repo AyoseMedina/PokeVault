@@ -4,7 +4,8 @@ import { decodeBackup } from './backup.js';
 import { localBackend, readLocalBank, deleteLocalBank, validateState, cloneVault, deduplicateBackups } from './vault.js';
 import { serverBackend } from './server-vault.js';
 import { convertForEmulator, needsClock, EMULATOR_TARGETS } from './emulator-convert.js';
-import { renderCardsPage, bindCardsPage } from './cards-page.js';
+import { renderCardsPage, bindCardsPage, showCard } from './cards-page.js';
+import { searchAll } from './search.js';
 import { packsForNew, unopened } from './packs.js';
 import { sequenceFromPlacements, demoSequence, animationMode, setAnimationMode, evolutionText, arrivalText, speciesName } from './animations.js';
 import { DATA } from './data.js';
@@ -124,7 +125,7 @@ function demoBanner(){return demo?`<div class="demo-banner"><span>${icon('info')
 function foot(){return `<footer class="footnote"><span>${icon('lock')}Privado para ti. Guardados procesados en tu navegador y almacenados en ${where()}${remote?' (cifrados)':''}.</span><span>Hecho para tus aventuras clásicas <span aria-hidden="true">✧</span> <button class="text-button" data-nav="guide">Ayuda y compatibilidad</button></span></footer>`;}
 function render(){
   const titles={bank:'Mi banco',saves:'Mis partidas',pokedex:'Pokédex',cards:'Cartas',transfers:'Transferencias',backups:'Copias de seguridad',guide:'Guía R36S',account:'Cuenta'};
-  $('#app').innerHTML=`<div class="shell">${sidebar()}<div class="main-wrap"><header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-haspopup="dialog" aria-label="Abrir menú de navegación">${icon('list')}<span>Menú</span></button><div class="crumb"><span>Mi espacio</span>${icon('chevron')}<strong>${titles[page]||'Mi banco'}</strong></div><div class="topbar-right"><span class="local-label"><span class="dot"></span>${persistenceError?'Almacenamiento no disponible':demo?'Explorando la demo':remote?'Guardado en el servidor':'Guardado en este navegador'}</span><span class="private-chip">${icon('lock')}Solo tú</span></div></header><main class="content" id="main-content">${migrationBanner()}${persistenceError?`<div class="error-box">${esc(persistenceError)}${recoveryState?'<button class="btn btn-light" id="recover-raw">Descargar recuperación sin modificar</button>':''}</div>`:''}${backupReminder()}${({bank:renderBank,saves:renderSaves,pokedex:renderPokedex,cards:renderCards,transfers:renderTransfers,backups:renderBackups,guide:renderGuide,account:renderAccount}[page]||renderBank)()}${foot()}</main></div></div>`;
+  $('#app').innerHTML=`<div class="shell">${sidebar()}<div class="main-wrap"><header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-haspopup="dialog" aria-label="Abrir menú de navegación">${icon('list')}<span>Menú</span></button><div class="crumb"><span>Mi espacio</span>${icon('chevron')}<strong>${titles[page]||'Mi banco'}</strong></div><div class="topbar-right"><button class="topbar-search" id="global-search" aria-label="Buscar en todo (Ctrl+K)" title="Buscar en todo (Ctrl+K o /)">${icon('search')}<span>Buscar</span><kbd>Ctrl K</kbd></button><span class="local-label"><span class="dot"></span>${persistenceError?'Almacenamiento no disponible':demo?'Explorando la demo':remote?'Guardado en el servidor':'Guardado en este navegador'}</span><span class="private-chip">${icon('lock')}Solo tú</span></div></header><main class="content" id="main-content">${migrationBanner()}${persistenceError?`<div class="error-box">${esc(persistenceError)}${recoveryState?'<button class="btn btn-light" id="recover-raw">Descargar recuperación sin modificar</button>':''}</div>`:''}${backupReminder()}${({bank:renderBank,saves:renderSaves,pokedex:renderPokedex,cards:renderCards,transfers:renderTransfers,backups:renderBackups,guide:renderGuide,account:renderAccount}[page]||renderBank)()}${foot()}</main></div></div>`;
   bindGlobal();
   if(page==='pokedex')bindPokedex();if(page==='bank')bindBank();if(page==='transfers')bindTransfers();if(page==='saves')bindSaves();if(page==='backups')bindBackups();if(page==='account')bindAccount();if(page==='cards')bindCardsPage(cardsContext());
 }
@@ -138,6 +139,7 @@ function showNavigation(){
 }
 function bindGlobal(){
   $('#mobile-menu').onclick=showNavigation;
+  $('#global-search').onclick=showSearch;
   $('#recover-raw')?.addEventListener('click',()=>presentDownload(JSON.stringify(recoveryState,(_,v)=>v instanceof Uint8Array?{type:'Uint8Array',base64:toBase64(v)}:v,null,2),'pokevault-recuperacion.json','application/json','Recuperación del estado original no compatible; conserva este archivo y no borres el almacenamiento.'));
   $$('[data-nav]').forEach(b=>b.onclick=()=>navigate(b.dataset.nav));
   $$('[data-action="import"]').forEach(b=>b.onclick=showImport);
@@ -387,6 +389,49 @@ function showEmulatorConverter(){
 // Trading-card page (dist/cards-page.js); read only.
 function cardsContext(){return {state,records,currentBox,GAMES,esc,img,icon,titleBlock,importButton,render,showModal,closeModal,showPokemon,dexEntry,animationMode,$,$$,uid,toast,commit,getState:()=>state};}
 function renderCards(){return renderCardsPage(cardsContext())+demoBanner();}
+// Global search (dist/search.js): Pokémon, saves, Pokédex and sections. Ctrl+K or «/».
+function showSearch(){
+  let hits=[],active=0;
+  showModal(`<div class="eyebrow">BUSCAR EN TODO</div><div class="search-wrap search-global">${icon('search')}<input class="search-input" id="global-query" type="search" placeholder="Pokémon, mote, entrenador, tipo, partida, número…" autocomplete="off" aria-label="Buscar en todo" aria-controls="global-results"></div><div id="global-results" class="global-results" role="listbox" aria-label="Resultados"><p class="inline-note">Escribe para buscar en tu banco, tus partidas, la Pokédex y las secciones. Sin tildes ni mayúsculas: «pokemon» encuentra «Pokémon».</p></div>`,()=>{
+    const input=$('#global-query'),box=$('#global-results');
+    const go=hit=>{
+      if(!hit)return;const {kind,value}=hit.dataset;
+      if(kind==='pokemon')showPokemon(value);
+      else if(kind==='card'){closeModal(false);showCard(cardsContext(),value);}
+      else if(kind==='save'){closeModal(false);navigate('saves');setTimeout(()=>document.querySelector(`[data-save-view="${CSS.escape(value)}"]`)?.closest('.save-card')?.scrollIntoView({block:'center'}),50);}
+      else if(kind==='species'){closeModal(false);dexSearch=value;dexPage=0;dexFilter='all';navigate('pokedex');}
+      else if(kind==='nav'){closeModal(false);navigate(value);}
+      else if(kind==='action'){closeModal(false);value==='import'?showImport():showEmulatorConverter();}
+    };
+    const paint=()=>{hits.forEach((h,i)=>{h.classList.toggle('active',i===active);h.setAttribute('aria-selected',String(i===active));});hits[active]?.scrollIntoView({block:'nearest'});};
+    const run=()=>{
+      const r=searchAll(input.value,{records,saves:state.saves.map(s=>({id:s.id,name:s.name,game:s.game,trainer:parsed.get(s.id)?.trainer})),notes:state.notes,favorites:state.favorites,server:!!remote?.account});
+      if(!input.value.trim()){box.innerHTML='<p class="inline-note">Escribe para buscar en tu banco, tus partidas, la Pokédex y las secciones.</p>';hits=[];return;}
+      const row=(kind,value,art,title,sub,extra='')=>`<div class="global-hit" role="option" data-kind="${kind}" data-value="${esc(value)}" tabindex="-1">${art}<span><strong>${title}</strong><small>${sub}</small></span>${extra}</div>`;
+      const group=(name,items)=>items.length?`<h3 class="global-group">${name}</h3>${items.join('')}`:'';
+      box.innerHTML=(r.total?'':'<p class="no-results">Sin resultados. Prueba con otro nombre, número o tipo.</p>')
+        +group('Tus Pokémon',r.pokemon.map(({p})=>row('pokemon',p.key,img(p.species,'','',{shiny:p.shiny}),`${esc(p.nickname&&p.nickname.toLocaleLowerCase('es')!==p.name.toLocaleLowerCase('es')?p.nickname:p.name)}${p.shiny?' ✦':''}${p.nickname&&p.nickname.toLocaleLowerCase('es')!==p.name.toLocaleLowerCase('es')?` <em>${esc(p.name)}</em>`:''}`,`Nv. ${p.level} · ${esc(GAMES[p.game].name)} · ${esc(p.boxName)}${p.consumedBy?' · trasladado':''}`,`<button class="btn btn-light btn-small" data-card-hit="${esc(p.key)}" tabindex="-1">${icon('spark')}Carta</button>`)).concat(r.more?[`<p class="inline-note">Y ${r.more} más: afina la búsqueda.</p>`]:[]))
+        +group('Partidas',r.saves.map(({s})=>row('save',s.id,img(GAMES[s.game].icon),esc(s.name),`Pokémon ${esc(GAMES[s.game].name)}${s.trainer?' · '+esc(s.trainer):''}`)))
+        +group('Pokédex',r.species.map(x=>row('species',String(x.species),img(x.species),`#${String(x.species).padStart(3,'0')} ${esc(x.name)}`,'Ver en la Pokédex')))
+        +group('Secciones y acciones',r.actions.map(a=>row(a.id?'nav':'action',a.id||a.action,`<span class="global-icon">${icon(a.id?'arrow':'spark')}</span>`,esc(a.label),a.id?'Ir a la sección':'Acción')));
+      hits=$$('.global-hit',box);active=0;paint();
+      hits.forEach((h,i)=>{h.onclick=e=>{if(e.target.closest('[data-card-hit]'))return;go(h);};h.onmouseenter=()=>{active=i;paint();};});
+      $$('[data-card-hit]',box).forEach(b=>b.onclick=e=>{e.stopPropagation();closeModal(false);showCard(cardsContext(),b.dataset.cardHit);});
+    };
+    let timer;input.oninput=()=>{clearTimeout(timer);timer=setTimeout(run,90);};
+    input.onkeydown=e=>{
+      if(e.key==='ArrowDown'&&hits.length){e.preventDefault();active=(active+1)%hits.length;paint();}
+      else if(e.key==='ArrowUp'&&hits.length){e.preventDefault();active=(active-1+hits.length)%hits.length;paint();}
+      else if(e.key==='Enter'){e.preventDefault();go(hits[active]);}
+    };
+    // showModal focuses its close button after binding: take the focus back to the field.
+    setTimeout(()=>input.focus(),0);
+  },true);
+}
+document.addEventListener('keydown',e=>{
+  const typing=/^(input|textarea|select)$/i.test(e.target.tagName)||e.target.isContentEditable;
+  if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')||(e.key==='/'&&!typing&&!$('#modal-root').children.length)){e.preventDefault();if(!$('#global-query'))showSearch();}
+});
 function renderBackups(){return titleBlock('Cada aventura merece un respaldo','Originales, puntos de restauración y una copia portátil de tu banco.',`<button class="btn btn-primary" id="backup-all" ${demo||!state.saves.length?'disabled':''}>${icon('download')}Exportar banco</button>`)+demoBanner()+storagePanel()+`<div class="hero-mini">${icon('shield')}<div><h3>Tus originales no se tocan.</h3><p>${remote?'Tu banco vive cifrado en el servidor. Exporta también una copia .pvault para conservarla fuera de él.':'Las copias locales viven en este navegador. Exporta tu banco para conservarlo también fuera de él.'}</p></div></div><div class="panel"><div class="panel-header"><div><h3>Respaldo portátil</h3><p>El archivo .pvault v2 incluye originales, respaldos, hashes, cajas, favoritos, notas, puntos de restauración e historial. Lee también respaldos v1.</p></div><button class="btn btn-light" id="restore-vault">${icon('upload')}Restaurar respaldo</button></div><p>La restauración valida todos los guardados y fusiona los que falten. Conserva tus partidas y la organización actual; no sobrescribe datos existentes.</p><input type="file" id="vault-file" accept=".pvault" hidden><div id="restore-status"></div></div><div class="panel"><div class="panel-header"><h3>Originales protegidos</h3><span class="badge">${demo?0:state.backups.length} copias</span></div>${!demo&&state.backups.length?state.backups.slice().reverse().map(b=>`<div class="log-item"><div class="log-icon">${icon('shield')}</div><div class="log-info"><strong>${esc(b.name)}</strong><span>${esc(b.reason)} · ${date(b.at)} · ${sizeLabel(b.bytes.length)}</span></div><button class="btn btn-light btn-small" data-backup-download="${b.id}">${icon('download')}Descargar</button></div>`).join(''):'<p class="backup-empty">Al importar tus partidas se creará aquí una copia de cada original.</p>'}</div><div class="panel"><div class="panel-header"><div><h3>Historial de organización</h3><p>Se conservan los últimos 25 estados anteriores a cambios en el banco.</p></div></div>${!demo&&state.snapshots.length?state.snapshots.map(s=>`<div class="log-item"><div class="log-icon">${icon('clock')}</div><div class="log-info"><strong>${esc(s.reason)}</strong><span>${date(s.at)} · ${s.boxes.length} cajas</span></div><button class="btn btn-light btn-small" data-restore-meta="${s.id}">${icon('refresh')}Restaurar</button></div>`).join(''):'<p class="backup-empty">Los cambios de cajas, favoritos y notas crearán puntos de restauración.</p>'}</div>`;}
 function portableVault(source=state){
   const blobs={};for(const item of [...source.saves,...source.backups])blobs[item.hash]??=toBase64(item.bytes);

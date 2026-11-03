@@ -34,6 +34,7 @@ documentation are in Spanish and English.
 | Feature | Description |
 | --- | --- |
 | Import adventures | Party and boxes from 16 games, with structure and checksums verified and original bytes kept with SHA-256. |
+| Search everything | "Buscar" button or **Ctrl+K** / "/": Pokémon (name, nickname, number, type, trainer, box, notes, shiny), saves, Pokédex and sections, accent- and case-insensitive. |
 | Organize your bank | 30-slot virtual boxes, search, filters, sorting, favorites and notes, without changing the save's boxes. |
 | See your Pokémon | Black/White animated sprites, shiny when they are; static images when the system asks for reduced motion. |
 | Move Pokémon | They leave the source and enter the destination like a real trade: trade evolution, items, destination Pokédex and clone prevention. [Policy](docs/MOVE_TRANSFER.md). |
@@ -161,6 +162,7 @@ Portainer builds straight from Git.
 | `dist/transfer.js`, `dist/custom-transfer.js` | Routes and conversions, including Crystal → GBA. |
 | `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Bank in IndexedDB or on the server and `.pvault` backups. |
 | `dist/cards*.js`, `dist/packs*.js`, `dist/card-data.js` | Cards, packs and their PokéAPI data. |
+| `dist/search.js` | Global search. |
 | `dist/animations.js`, `dist/pokedex*.js` | Animations and Pokédex with local descriptions. |
 | `dist/emulator-convert.js` | R36S ⇄ Wii converter, including the Crystal clock. |
 | `dist/*data.js`, `dist/sprites/` | Tables with provenance and sprites 1–649 (static, shiny and animated). |

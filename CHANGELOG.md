@@ -5,6 +5,13 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Buscador global (sin despliegue)
+
+- Botón «Buscar» en la barra superior y atajos **Ctrl+K** y «/». Busca Pokémon por
+  nombre, mote, número, tipo, entrenador, caja, notas o variocolor; partidas;
+  especies de la Pokédex y secciones o acciones. Sin tildes ni mayúsculas, con
+  flechas y Enter, y botón directo a la carta de cada Pokémon.
+
 ## 2026-11-03 · Cartas y sobres (sin despliegue)
 
 - Página «Cartas»: cada Pokémon del banco como carta de diseño propio, con PS

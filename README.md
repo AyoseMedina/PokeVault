@@ -33,6 +33,7 @@ SMTP que configures para el correo.
 | Función | Descripción |
 | --- | --- |
 | Importar aventuras | Equipo y cajas de 16 juegos, con estructura y checksums comprobados y los bytes originales conservados con SHA-256. |
+| Buscar en todo | Botón «Buscar» o **Ctrl+K** / «/»: Pokémon (nombre, mote, número, tipo, entrenador, caja, notas, variocolor), partidas, Pokédex y secciones, sin importar tildes ni mayúsculas. |
 | Organizar tu banco | Cajas virtuales de 30 casillas, búsqueda, filtros, orden, favoritos y notas, sin alterar las cajas de la partida. |
 | Ver a tus Pokémon | Sprites animados de Negro/Blanco y variocolor cuando lo son; estáticos si el sistema pide reducir movimiento. |
 | Mover Pokémon | Salen del origen y entran en el destino, como un intercambio real: evolución por intercambio, objetos, Pokédex del destino y bloqueo del clonado. [Política](docs/MOVE_TRANSFER.md). |
@@ -163,6 +164,7 @@ Actions: Portainer construye directamente desde Git.
 | `dist/transfer.js`, `dist/custom-transfer.js` | Rutas y conversiones, incluida Cristal → GBA. |
 | `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Banco en IndexedDB o en el servidor y respaldos `.pvault`. |
 | `dist/cards*.js`, `dist/packs*.js`, `dist/card-data.js` | Cartas, sobres y sus datos de PokéAPI. |
+| `dist/search.js` | Buscador global. |
 | `dist/animations.js`, `dist/pokedex*.js` | Animaciones y Pokédex con descripciones locales. |
 | `dist/emulator-convert.js` | Conversor R36S ⇄ Wii, incluido el reloj de Cristal. |
 | `dist/*data.js`, `dist/sprites/` | Tablas con procedencia y sprites 1–649 (estáticos, variocolor y animados). |

@@ -51,7 +51,7 @@ function tilt(ctx, el) {
   el.addEventListener('pointerleave', () => { el.classList.remove('tilting'); ['--rx', '--ry'].forEach(v => el.style.setProperty(v, '0deg')); });
 }
 
-function showCard(ctx, key) {
+export function showCard(ctx, key) {
   const p = ctx.records.get(key); if (!p) return;
   const m = cardModel(p), h = helpers(ctx);
   let back = false;

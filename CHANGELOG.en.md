@@ -5,6 +5,12 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Global search (not deployed)
+
+- "Buscar" button and **Ctrl+K** / "/" shortcuts. Finds Pokémon by name, nickname,
+  number, type, trainer, box, notes or shiny; saves; Pokédex species; sections and
+  actions. Accent/case-insensitive, arrow keys and Enter, and a direct card button.
+
 ## 2026-11-03 · Cards and packs (not deployed)
 
 - "Cartas" page: every bank Pokémon as an original-design card with real HP,
