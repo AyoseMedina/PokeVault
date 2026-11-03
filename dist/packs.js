@@ -34,6 +34,8 @@ export function packsForNew(next, records, newRecords, source, options) {
   return addPacks(next, keys, source, options);
 }
 export const unopened = state => (state.packs?.items || []).filter(p => !p.openedAt);
+// Cards still sealed in an unopened pack are not part of the collection yet.
+export const sealedKeys = state => new Set(unopened(state).flatMap(p => p.keys));
 // Reveal order: commons first, the rarest last (like a real pack).
 const RANK = { common: 0, uncommon: 1, rare: 2, legend: 3, shiny: 4 };
 export const revealOrder = models => models.slice().sort((a, b) => RANK[a.rarity.key] - RANK[b.rarity.key]);

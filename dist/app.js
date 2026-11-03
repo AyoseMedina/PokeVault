@@ -6,7 +6,7 @@ import { serverBackend } from './server-vault.js';
 import { convertForEmulator, needsClock, EMULATOR_TARGETS } from './emulator-convert.js';
 import { renderCardsPage, bindCardsPage, showCard } from './cards-page.js';
 import { searchAll } from './search.js';
-import { packsForNew, unopened } from './packs.js';
+import { packsForNew, unopened, sealedKeys } from './packs.js';
 import { sequenceFromPlacements, demoSequence, animationMode, setAnimationMode, evolutionText, arrivalText, speciesName } from './animations.js';
 import { DATA } from './data.js';
 import { dexEntry } from './pokedex-catalog.js';
@@ -407,10 +407,11 @@ function showSearch(){
     const run=()=>{
       const r=searchAll(input.value,{records,saves:state.saves.map(s=>({id:s.id,name:s.name,game:s.game,trainer:parsed.get(s.id)?.trainer})),notes:state.notes,favorites:state.favorites,server:!!remote?.account});
       if(!input.value.trim()){box.innerHTML='<p class="inline-note">Escribe para buscar en tu banco, tus partidas, la Pokédex y las secciones.</p>';hits=[];return;}
+      const sealed=sealedKeys(state);
       const row=(kind,value,art,title,sub,extra='')=>`<div class="global-hit" role="option" data-kind="${kind}" data-value="${esc(value)}" tabindex="-1">${art}<span><strong>${title}</strong><small>${sub}</small></span>${extra}</div>`;
       const group=(name,items)=>items.length?`<h3 class="global-group">${name}</h3>${items.join('')}`:'';
       box.innerHTML=(r.total?'':'<p class="no-results">Sin resultados. Prueba con otro nombre, número o tipo.</p>')
-        +group('Tus Pokémon',r.pokemon.map(({p})=>row('pokemon',p.key,img(p.species,'','',{shiny:p.shiny}),`${esc(p.nickname&&p.nickname.toLocaleLowerCase('es')!==p.name.toLocaleLowerCase('es')?p.nickname:p.name)}${p.shiny?' ✦':''}${p.nickname&&p.nickname.toLocaleLowerCase('es')!==p.name.toLocaleLowerCase('es')?` <em>${esc(p.name)}</em>`:''}`,`Nv. ${p.level} · ${esc(GAMES[p.game].name)} · ${esc(p.boxName)}${p.consumedBy?' · trasladado':''}`,`<button class="btn btn-light btn-small" data-card-hit="${esc(p.key)}" tabindex="-1">${icon('spark')}Carta</button>`)).concat(r.more?[`<p class="inline-note">Y ${r.more} más: afina la búsqueda.</p>`]:[]))
+        +group('Tus Pokémon',r.pokemon.map(({p})=>row('pokemon',p.key,img(p.species,'','',{shiny:p.shiny}),`${esc(p.nickname&&p.nickname.toLocaleLowerCase('es')!==p.name.toLocaleLowerCase('es')?p.nickname:p.name)}${p.shiny?' ✦':''}${p.nickname&&p.nickname.toLocaleLowerCase('es')!==p.name.toLocaleLowerCase('es')?` <em>${esc(p.name)}</em>`:''}`,`Nv. ${p.level} · ${esc(GAMES[p.game].name)} · ${esc(p.boxName)}${p.consumedBy?' · trasladado':''}`,sealed.has(p.key)?'<span class="badge" title="Abre su sobre en Cartas">En un sobre</span>':`<button class="btn btn-light btn-small" data-card-hit="${esc(p.key)}" tabindex="-1">${icon('spark')}Carta</button>`)).concat(r.more?[`<p class="inline-note">Y ${r.more} más: afina la búsqueda.</p>`]:[]))
         +group('Partidas',r.saves.map(({s})=>row('save',s.id,img(GAMES[s.game].icon),esc(s.name),`Pokémon ${esc(GAMES[s.game].name)}${s.trainer?' · '+esc(s.trainer):''}`)))
         +group('Pokédex',r.species.map(x=>row('species',String(x.species),img(x.species),`#${String(x.species).padStart(3,'0')} ${esc(x.name)}`,'Ver en la Pokédex')))
         +group('Secciones y acciones',r.actions.map(a=>row(a.id?'nav':'action',a.id||a.action,`<span class="global-icon">${icon(a.id?'arrow':'spark')}</span>`,esc(a.label),a.id?'Ir a la sección':'Acción')));

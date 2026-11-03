@@ -4,7 +4,7 @@
 import { cardModel } from './cards.js';
 import { cardFront, cardBack } from './cards-view.js';
 import { packStrip, openPack } from './packs-view.js';
-import { ensurePacks } from './packs.js';
+import { ensurePacks, sealedKeys } from './packs.js';
 
 const PER_PAGE = 18;
 const view = { scope: 'all', game: 'all', shiny: false, sort: 'box', page: 0 };
@@ -12,7 +12,8 @@ const helpers = ctx => ({ esc: ctx.esc, img: ctx.img, gameName: g => ctx.GAMES[g
 
 function cardList(ctx) {
   const keys = view.scope === 'box' ? (ctx.currentBox()?.slots.filter(Boolean) || []) : ctx.state.boxes.flatMap(b => b.slots.filter(Boolean));
-  let list = keys.map(k => ctx.records.get(k)).filter(p => p && p.valid && !p.consumedBy)
+  const sealed = sealedKeys(ctx.getState());
+  let list = keys.filter(k => !sealed.has(k)).map(k => ctx.records.get(k)).filter(p => p && p.valid && !p.consumedBy)
     .filter(p => (view.game === 'all' || p.game === view.game) && (!view.shiny || p.shiny))
     .map(p => ({ p, m: cardModel(p) }));
   if (view.sort === 'level') list.sort((a, b) => b.m.level - a.m.level);
@@ -34,8 +35,8 @@ export function renderCardsPage(ctx) {
     <div class="field"><label for="cards-game">Juego</label><select id="cards-game"><option value="all">Todos</option>${games.map(g => `<option value="${g}" ${view.game === g ? 'selected' : ''}>${esc(GAMES[g].name)}</option>`).join('')}</select></div>
     <div class="field"><label for="cards-sort">Orden</label><select id="cards-sort">${[['box', 'Orden del banco'], ['rarity', 'Rareza'], ['level', 'Mayor nivel'], ['hp', 'Más PS'], ['dex', 'Pokédex']].map(([v, l]) => `<option value="${v}" ${view.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="field"><label class="inline-check"><input type="checkbox" id="cards-shiny" ${view.shiny ? 'checked' : ''}>Solo variocolor</label></div></div>
-    <p class="inline-note">${list.length} carta${list.length === 1 ? '' : 's'} · ${['shiny', 'legend', 'rare', 'uncommon', 'common'].filter(k => counts[k]).map(k => `${{ shiny: '✦ Variocolor', legend: '★ Legendaria', rare: '◆ Rara', uncommon: '◇ Poco común', common: '● Común' }[k]}: ${counts[k]}`).join(' · ')}</p>
-    <section class="tcg-grid">${list.slice(view.page * PER_PAGE, (view.page + 1) * PER_PAGE).map(({ m }) => cardFront(m, helpers(ctx))).join('') || '<p class="no-results">No hay cartas con estos filtros.</p>'}</section>
+    <p class="inline-note">${list.length} carta${list.length === 1 ? '' : 's'}${sealedKeys(ctx.getState()).size ? ` · ${sealedKeys(ctx.getState()).size} esperando en sobres sin abrir` : ''} · ${['shiny', 'legend', 'rare', 'uncommon', 'common'].filter(k => counts[k]).map(k => `${{ shiny: '✦ Variocolor', legend: '★ Legendaria', rare: '◆ Rara', uncommon: '◇ Poco común', common: '● Común' }[k]}: ${counts[k]}`).join(' · ')}</p>
+    <section class="tcg-grid">${list.slice(view.page * PER_PAGE, (view.page + 1) * PER_PAGE).map(({ m }) => cardFront(m, helpers(ctx))).join('') || (sealedKeys(ctx.getState()).size ? '<p class="no-results">Tus cartas están en los sobres de arriba: ábrelos para añadirlas a tu colección.</p>' : '<p class="no-results">No hay cartas con estos filtros.</p>')}</section>
     <div class="dex-pagination"><button class="btn btn-light btn-small" id="cards-prev" ${view.page === 0 ? 'disabled' : ''}>Anterior</button><span>Página ${view.page + 1} de ${pages}</span><button class="btn btn-light btn-small" id="cards-next" ${view.page >= pages - 1 ? 'disabled' : ''}>Siguiente</button></div>
     <p class="inline-note">Diseño propio de PokéVault. PS reales (nivel, ${'IV/DV'} y entrenamiento del guardado), potencia de los movimientos y tabla de tipos de la generación de cada juego, con datos de PokéAPI. Las cartas no cambian tus partidas.</p>`;
 }
