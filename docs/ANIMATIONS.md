@@ -2,8 +2,12 @@
 
 ## Español
 
-**Estado:** idea del usuario (2026-11-03), especificada y pendiente de
-implementar. Implementar **después** de la fase 3 del modo mover. Solo cambia la
+**Estado:** implementado (2026-11-03). Código: `dist/animations.js` (secuencia pura y
+preferencia), reproductor `playMoveAnimation` en `dist/app.js` y estilos en
+`dist/styles.css`. Pruebas: `tests/animations.test.js` y el paso de animación de
+`tests/browser-move.mjs`. La demo incluye «Ver animación de intercambio» con un
+ejemplo fijo (evolución por intercambio, evolución con objeto variocolor y
+Piedra Eterna). Cerrar o saltar la animación siempre lleva a la descarga. Solo cambia la
 interfaz: no modifica guardados, bytes revisados ni el paquete.
 
 ### Cuándo se muestran

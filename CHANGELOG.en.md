@@ -5,6 +5,17 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Trade and evolution animations (not deployed)
+
+- Preparing a move shows each Pokémon travelling (trade, Time Capsule, Pal Park,
+  Poké Transfer or custom conversion) and evolving when applicable, with consumed
+  item, Everstone and shiny notes. Original design; it only reflects the verified
+  result and changes no data.
+- "Skip" and "Show all"; evolution cannot be cancelled. Closing always leads to
+  the download. Replay from history and a demo example.
+- Per-browser full/reduced/off preference; honours "reduce motion". Tested in
+  Chromium (desktop, mobile, reduced).
+
 ## 2026-11-03 · Account and email (not deployed)
 
 - "Account" page: email with link confirmation, password change (closes other

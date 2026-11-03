@@ -18,3 +18,31 @@
 
 /* Animated sprites: keep layout of the static image; small GIFs are not upscaled. */
 .sprite-picture{display:contents}.sprite-animated{object-fit:scale-down}
+
+/* Trade and evolution animations (docs/ANIMATIONS.md): transform/opacity only. */
+.trade-anim{display:grid;gap:16px}.trade-stage{display:grid;grid-template-columns:1fr minmax(90px,1.2fr) 1fr;gap:12px;align-items:center}
+.trade-card{background:var(--bg);border-radius:14px;padding:12px;text-align:center;display:grid;gap:4px}.trade-card small{color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.trade-slot{height:104px;display:grid;place-items:center}.trade-slot img,.evo-stage img,.anim-summary img{width:96px;height:96px;object-fit:contain;image-rendering:pixelated}
+.trade-track{position:relative;height:56px;border-bottom:2px dashed #d6d2d6}.trade-bridge{position:absolute;inset:0 0 auto;text-align:center;font-size:12px;font-weight:650;color:var(--green)}
+.trade-runner{position:absolute;left:0;right:0;bottom:-12px;height:22px;opacity:0}.trade-ball{position:absolute;left:0;width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:linear-gradient(var(--green) 0 45%,var(--ink) 45% 55%,#fff 55%)}
+.phase-send .trade-runner{opacity:1;animation:pv-run 1.2s .25s ease-in-out both}.phase-send .anim-from{animation:pv-shrink .45s ease-in both}
+.phase-send .anim-to,.trade-anim:not(.phase-send) .anim-from{opacity:0;transform:scale(0)}
+.phase-arrive .anim-to{animation:pv-pop .55s cubic-bezier(.3,1.6,.5,1) both}
+.evo-stage{position:relative;height:0;overflow:hidden;display:grid;place-items:center}.evo-stage img{grid-area:1/1}
+.phase-evolve .evo-stage,.phase-evolved .evo-stage{height:150px}.phase-evolve .trade-stage,.phase-evolved .trade-stage{display:none}
+.evo-glow{grid-area:1/1;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#fff 0,#ffe7ec 40%,transparent 70%);opacity:0}
+.phase-evolve .evo-glow{animation:pv-glow 1s ease-in-out 2 both}.phase-evolve .evo-old{animation:pv-evo-out 2.1s ease-in both}.phase-evolve .evo-new{animation:pv-evo-in 2.1s ease-out both}
+.evo-new,.trade-anim:not(.phase-evolve):not(.phase-evolved) .evo-old{opacity:0}.phase-evolved .evo-old{opacity:0}.phase-evolved .evo-new{opacity:1}
+.evo-sparkle{grid-area:1/1;align-self:start;justify-self:end;color:var(--gold);font-size:22px;opacity:0}.evo-sparkle.two{align-self:end;justify-self:start}
+.phase-evolved .evo-sparkle,.phase-arrive .evo-sparkle{animation:pv-sparkle 1.2s ease-out both}
+.anim-text{min-height:3em;text-align:center;font-weight:600}.anim-summary{display:grid;gap:8px}
+@keyframes pv-run{from{transform:translateX(0)}to{transform:translateX(calc(100% - 22px))}}
+@keyframes pv-shrink{to{transform:scale(0);opacity:0}}@keyframes pv-pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pv-glow{0%,100%{opacity:0;transform:scale(.7)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes pv-evo-out{0%{opacity:1;filter:none}60%{opacity:1;filter:brightness(0) invert(1)}100%{opacity:0;filter:brightness(0) invert(1)}}
+@keyframes pv-evo-in{0%,55%{opacity:0;filter:brightness(0) invert(1);transform:scale(.8)}100%{opacity:1;filter:none;transform:scale(1)}}
+@keyframes pv-sparkle{0%{opacity:0;transform:scale(.4) rotate(0)}40%{opacity:1}100%{opacity:0;transform:scale(1.4) rotate(45deg)}}
+.mode-reduced *,.mode-reduced{animation:none!important}.mode-reduced .trade-runner{opacity:0}
+.mode-reduced.phase-arrive .anim-to,.mode-reduced.phase-evolve .evo-new{opacity:1;transform:none;transition:opacity .3s}
+.mode-reduced.phase-evolve .evo-old{opacity:0}
+@media (max-width:560px){.trade-stage{grid-template-columns:1fr;gap:6px}.trade-track{height:40px}.trade-slot{height:84px}.trade-slot img{width:76px;height:76px}}

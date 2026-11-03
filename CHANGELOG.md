@@ -5,6 +5,17 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Animaciones de intercambio y evolución (sin despliegue)
+
+- Al preparar un movimiento se ve viajar a cada Pokémon (Intercambio, Cápsula del
+  Tiempo, Parque Compi, Pokétransfer o conversión personalizada) y, si corresponde,
+  su evolución, con avisos de objeto consumido, Piedra Eterna y variocolor.
+  Diseño propio; solo refleja el resultado ya verificado y no cambia datos.
+- «Saltar» y «Ver todos de golpe»; la evolución no se cancela. Cerrar la animación
+  siempre lleva a la descarga. Repetición desde el historial y ejemplo en la demo.
+- Preferencia completas/reducidas/desactivadas por navegador; respeta «reducir
+  movimiento». Probado en Chromium (escritorio, móvil y reducido).
+
 ## 2026-11-03 · Cuenta y correo (sin despliegue)
 
 - Página «Cuenta»: correo con confirmación por enlace, cambio de contraseña (cierra
