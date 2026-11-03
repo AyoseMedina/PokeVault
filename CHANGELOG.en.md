@@ -5,6 +5,21 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Server-side bank (not deployed)
+
+- In Docker/Node mode the whole bank lives on the `pokevault_data` volume,
+  encrypted with AES-256-GCM and the required `POKEVAULT_DATA_KEY` (no key, no
+  startup). Atomic writes, SHA-256 content-addressed originals, If-Match revisions
+  (409 on another device's change) and 50 restorable revisions that never release
+  moved versions.
+- The server re-validates schema, sizes, quota, new saves with the same parser
+  and the consumed ledger. The browser verifies the SHA-256 of every downloaded original.
+- Explicit, verified upload of an old browser bank; the local copy is deleted only
+  after confirmation. `iniciar.py` keeps IndexedDB.
+- `vault-admin.mjs verify | rotate-key`, volume and key in all Compose files,
+  credential generator and guides. Tested in Chromium and Docker (read-only root,
+  restart and volume permissions).
+
 ## 2026-11-03 · Spanish Pokédex (not deployed)
 
 - PokéAPI has no Spanish text for any generation I–V edition. Spanish now shows

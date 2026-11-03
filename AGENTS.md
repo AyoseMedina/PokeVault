@@ -9,10 +9,12 @@ ejecución JavaScript en el navegador. `server/` añade autenticación HTTP para
 Docker y Node; no recibe ni almacena guardados. El proxy Nginx existente gestiona
 HTTPS; Caddy se conserva como alternativa opcional.
 
-**Cambio autorizado (2026-11-03), pendiente de implementar:** en modo Docker/Node
-el banco completo vivirá en el servidor, cifrado en el volumen `pokevault_data`
-según `docs/SERVER_VAULT.md`. El análisis y la escritura siguen en el navegador;
-`iniciar.py` conserva IndexedDB. Hasta que se implemente, se aplica lo anterior.
+**Cambio autorizado e implementado (2026-11-03):** en modo Docker/Node el banco
+completo vive en el servidor, cifrado en el volumen `pokevault_data` según
+`docs/SERVER_VAULT.md` (sustituye «no recibe ni almacena guardados» para ese
+modo). El análisis y la escritura siguen en el navegador; `iniciar.py` conserva
+IndexedDB. Nunca registrar contenido del banco; no sobrescribir ni reinicializar
+el volumen; perder `POKEVAULT_DATA_KEY` significa perder el banco.
 
 Archivos principales:
 

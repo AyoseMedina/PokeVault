@@ -88,10 +88,14 @@ docker build -t pokevault .
 docker run --rm -it pokevault node server/create-credentials.mjs
 ```
 
-Copia las tres variables que imprime a un archivo `.env` local o a las variables
-del stack en Portainer. Son `POKEVAULT_USERNAME`, `POKEVAULT_PASSWORD_HASH` y
-`POKEVAULT_SESSION_SECRET`. No publiques esos valores ni los pegues en el Compose
-de GitHub. No hay cuenta ni contraseña predeterminada.
+Copia las cuatro variables que imprime a un archivo `.env` local o a las variables
+del stack en Portainer. Son `POKEVAULT_USERNAME`, `POKEVAULT_PASSWORD_HASH`,
+`POKEVAULT_SESSION_SECRET` y `POKEVAULT_DATA_KEY`. No publiques esos valores ni
+los pegues en el Compose de GitHub. No hay cuenta ni contraseña predeterminada.
+
+> **Guarda `POKEVAULT_DATA_KEY` también fuera del servidor** (gestor de
+> contraseñas). Cifra tu banco en el volumen `pokevault_data`: **si la pierdes,
+> pierdes el banco**, incluso con copias del volumen. Sin ella el servidor no arranca.
 
 ### Local: listo sin dominio
 
@@ -192,6 +196,8 @@ No se crea ni compra el dominio automáticamente. Mientras no lo tengas, usa loc
    | `POKEVAULT_USERNAME` | Generada, obligatoria | Obligatoria | Obligatoria |
    | `POKEVAULT_PASSWORD_HASH` | Generada, obligatoria | Obligatoria | Obligatoria |
    | `POKEVAULT_SESSION_SECRET` | Generada, obligatoria | Obligatoria | Obligatoria |
+   | `POKEVAULT_DATA_KEY` | Generada, obligatoria; guárdala aparte | Obligatoria | Obligatoria |
+   | `POKEVAULT_VAULT_QUOTA_MB` | Opcional, 2048 | Opcional | Opcional |
    | `POKEVAULT_ORIGIN` | URL HTTPS pública, obligatoria | Opcional, origen local existente | Se obtiene del dominio |
    | `POKEVAULT_TRUST_PROXY` | IP o subred exclusiva del proxy, obligatoria | No se usa | Automática en red aislada |
    | `POKEVAULT_PORT` | No se usa; puerto interno 8080 | Opcional, 8080 | No se usa |
@@ -275,11 +281,32 @@ GBA y activa **Cristal → GBA personalizada**. Revisa identidad generada, DVs/I
 entrenamiento y procedencia sintética antes de exportar. El ZIP conserva ambos
 originales. Consulta la [política personalizada y sus límites](docs/CUSTOM_TRANSFER.md).
 
-## Trasladar tu banco
+## Banco en el servidor (Docker)
 
-Los guardados se conservan en el almacenamiento del navegador. El banco local
-será independiente del que tengas en el sitio alojado: exporta un respaldo
-.pvault desde el sitio e impórtalo aquí para trasladar tus datos.
+Con Docker/Node, el banco completo (partidas, respaldos, cajas, notas, historial y
+versiones consumidas) se guarda **cifrado en el volumen `pokevault_data`** y se
+ve igual desde cualquier dispositivo. Se conservan las últimas 50 versiones;
+**Copias de seguridad → Versiones del servidor** permite restaurar una (crea una
+versión nueva y nunca libera versiones movidas). Detalles: [docs/SERVER_VAULT.md](docs/SERVER_VAULT.md).
+
+- **Banco anterior del navegador:** al entrar, la web lo detecta. Con el servidor
+  vacío, **Subir al servidor** lo copia y lo verifica. Si el servidor ya tiene
+  partidas, descarga el respaldo del navegador y restáuralo (se fusiona). La copia
+  del navegador solo se borra si lo confirmas.
+- **Copia del volumen** (con el stack detenido o en pausa):
+  `docker run --rm -v pokevault_data:/data -v "$PWD":/copia alpine tar czf /copia/pokevault-data.tgz -C /data .`
+  Restaura con `tar xzf` en un volumen vacío. Guarda la clave aparte.
+- **Comprobar el banco:** `docker exec <contenedor> node server/vault-admin.mjs verify`.
+- **Cambiar la clave:** detén la app y ejecuta en un contenedor con el mismo volumen
+  `POKEVAULT_NEW_DATA_KEY=<nueva> node server/vault-admin.mjs rotate-key`; después
+  pon la nueva como `POKEVAULT_DATA_KEY`. La carpeta anterior queda como `vault.old-*`.
+- Exporta también un `.pvault` de vez en cuando: es tu copia fuera del servidor.
+
+## Trasladar tu banco (modo local sin login)
+
+Con `iniciar.py` los guardados se conservan en el almacenamiento del navegador,
+independiente del banco del servidor: exporta un respaldo .pvault desde el sitio
+e impórtalo aquí para trasladar tus datos.
 
 Conserva el mismo navegador, dirección y puerto para volver a abrir el mismo
 banco local. Cambiar el origen web cambia el almacenamiento visible.

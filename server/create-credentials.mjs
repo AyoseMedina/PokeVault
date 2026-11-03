@@ -32,7 +32,7 @@ try {
   const repeat = await hidden('Repite / Repeat: ');
   if (password !== repeat) throw new Error('Las contraseñas no coinciden / Passwords do not match.');
   const encoded = await hashPassword(password);
-  const content = `POKEVAULT_USERNAME=${username}\nPOKEVAULT_PASSWORD_HASH=${encoded}\nPOKEVAULT_SESSION_SECRET=${randomBytes(32).toString('hex')}\n`;
+  const content = `POKEVAULT_USERNAME=${username}\nPOKEVAULT_PASSWORD_HASH=${encoded}\nPOKEVAULT_SESSION_SECRET=${randomBytes(32).toString('hex')}\nPOKEVAULT_DATA_KEY=${randomBytes(32).toString('hex')}\n`;
   if (process.argv.includes('--write-env')) {
     await writeFile('.env', content, { flag: 'wx', mode: 0o600 });
     console.log('.env creado sin sobrescribir archivos / Created .env without overwriting files.');

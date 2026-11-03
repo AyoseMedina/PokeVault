@@ -10,10 +10,12 @@ There is no save server and no browser JavaScript runtime dependencies.
 `server/` adds HTTP authentication for Docker and Node without receiving or
 storing saves. Existing Nginx handles HTTPS; Caddy remains an optional alternative.
 
-**Authorized change (2026-11-03), not yet implemented:** in Docker/Node mode the
-whole bank will live on the server, encrypted on the `pokevault_data` volume as
-described in `docs/SERVER_VAULT.md`. Parsing and writing stay in the browser, and
-`iniciar.py` keeps IndexedDB. Until then, the paragraph above applies.
+**Authorized and implemented change (2026-11-03):** in Docker/Node mode the whole
+bank lives on the server, encrypted on the `pokevault_data` volume as described
+in `docs/SERVER_VAULT.md` (this replaces "without receiving or storing saves" for
+that mode). Parsing and writing stay in the browser, and `iniciar.py` keeps
+IndexedDB. Never log bank content, and never overwrite or reinitialize the volume.
+Losing `POKEVAULT_DATA_KEY` means losing the bank.
 
 Main files:
 

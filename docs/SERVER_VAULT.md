@@ -2,7 +2,9 @@
 
 ## Español
 
-**Estado:** autorizado por el usuario (2026-11-03), pendiente de implementar.
+**Estado:** autorizado por el usuario e implementado (2026-11-03). Código: `server/vault-store.js`,
+`server/vault-validate.js`, rutas `/api/vault` en `server/app.js`, `server/vault-admin.mjs`
+y `dist/server-vault.js`. Pruebas: `server/tests/vault.test.js` y `tests/browser-server-vault.mjs`.
 Política: `pokevault-server-vault-v1`. Orden: después del modo mover de Codex y
 **antes** de `ACCOUNT_EMAIL.md` (comparten el volumen).
 
@@ -110,6 +112,22 @@ servidor) sigue usando IndexedDB como hoy.
   campos mínimos y las mismas opciones de activación.
 - Modo mover, versiones consumidas y respaldos: misma lógica; el registro de
   versiones consumidas se valida también en el servidor.
+
+### Decisiones de implementación
+
+- Los originales recién subidos que aún no referencia ninguna revisión se conservan
+  1 hora antes de recogerlos, para no borrar una subida a medias.
+- `HEAD` también va cifrado (AAD `head`): no se puede hacer retroceder el banco
+  editando un archivo de texto.
+- El tamaño de cada original se comprueba sin descifrarlo, y solo se vuelven a
+  analizar con `parseSave` las partidas nuevas o con otro juego o idioma.
+- Restaurar fusiona el registro de versiones consumidas actual con el restaurado
+  (`mergeConsumed`), y la validación impide liberar una versión salvo anulando su
+  exportación.
+- El modo servidor se activa solo si `/auth/session` indica `vault: true`; sin
+  almacén configurado, `createApp` sigue el modo local (pruebas existentes).
+- La rotación de clave recifra en `vault.new`, verifica y cambia de carpeta;
+  la anterior queda como `vault.old-*`.
 
 ### Pruebas mínimas
 

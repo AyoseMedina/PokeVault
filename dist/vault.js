@@ -19,7 +19,7 @@ export function cloneVault(value) {
   return {...structuredClone(metadata),saves:saves.map(s=>({...s})),backups:backups.map(b=>({...b}))};
 }
 const sameBytes=(a,b)=>a instanceof Uint8Array&&b instanceof Uint8Array&&a.length===b.length&&a.every((value,i)=>value===b[i]);
-function shareBytes(value){
+export function shareBytes(value){
   const originals=new Map();
   for(const item of [...value.saves,...value.backups]){
     const previous=originals.get(item.hash);
@@ -104,4 +104,19 @@ export function writeVault(db,value,revision,{onlyEmpty=false}={}) {
     };
     tx.oncomplete=()=>resolve(revision+1);tx.onerror=()=>reject(error||tx.error);tx.onabort=()=>reject(error||tx.error||new Error('Operación cancelada.'));
   });
+}
+
+// Same interface as the server adapter (dist/server-vault.js).
+export async function localBackend(onVersionChange){
+  const db=await openVault(onVersionChange);
+  return {kind:'local',read:()=>readVault(db),write:(value,revision,options)=>writeVault(db,value,revision,options),dump:()=>dumpVault(db),close:()=>db.close()};
+}
+// Read-only access to a browser bank left from before server mode.
+export async function readLocalBank(){
+  if(typeof indexedDB==='undefined')return null;
+  if(indexedDB.databases){const list=await indexedDB.databases();if(!list.some(d=>d.name==='pokevault-r36s-v1'))return null;}
+  const db=await openVault();try{const value=await readVault(db);if(value)validateState(value);return value||null;}finally{db.close();}
+}
+export function deleteLocalBank(){
+  return new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase('pokevault-r36s-v1');r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);r.onblocked=()=>reject(new Error('Cierra las demás pestañas de PokéVault para borrar la copia del navegador.'));});
 }

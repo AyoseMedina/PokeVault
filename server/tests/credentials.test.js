@@ -34,6 +34,7 @@ test('credential generator writes a salted hash and random secret without plaint
   const vars=Object.fromEntries(content.trim().split('\n').map(line=>line.split('=')));
   assert.equal(vars.POKEVAULT_USERNAME,'test-owner');
   assert.match(vars.POKEVAULT_SESSION_SECRET,/^[a-f0-9]{64}$/);
+  assert.match(vars.POKEVAULT_DATA_KEY,/^[a-f0-9]{64}$/);assert.notEqual(vars.POKEVAULT_DATA_KEY,vars.POKEVAULT_SESSION_SECRET);
   assert.equal(await verifyPassword(password,vars.POKEVAULT_PASSWORD_HASH),true);
 });
 test('credential generator refuses to overwrite an existing configuration', async () => {

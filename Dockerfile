@@ -6,6 +6,9 @@ COPY server/package.json server/package-lock.json ./server/
 RUN npm --prefix server ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY server/ ./server/
 COPY dist/ ./dist/
+# Named volumes inherit this ownership on first use (docs/SERVER_VAULT.md).
+RUN mkdir -p /data && chown node:node /data && chmod 700 /data
+ENV POKEVAULT_DATA_DIR=/data
 USER node
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

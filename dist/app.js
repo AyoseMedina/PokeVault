@@ -1,7 +1,8 @@
 import { buildMove, resultPath, MOVE_POLICY } from './move.js';
 import { consumedLedger, assertUnconsumed, consumeVersions, mergeConsumed, annulExport } from './consumed.js';
 import { decodeBackup } from './backup.js';
-import { openVault, readVault, dumpVault, writeVault, validateState, cloneVault, deduplicateBackups } from './vault.js';
+import { localBackend, readLocalBank, deleteLocalBank, validateState, cloneVault, deduplicateBackups } from './vault.js';
+import { serverBackend } from './server-vault.js';
 import { DATA } from './data.js';
 import { dexEntry } from './pokedex-catalog.js';
 import { defaultTransferDate } from './transfer.js';
@@ -21,9 +22,13 @@ let dexSaveId='',dexSearch='',dexFilter='all',dexPage=0,dexLanguage='es';
 let customGen2To3=false;
 let transferKeys=[], destinationId='',destinationBox=0, transferPreview=null, modalCleanup=null,lastFocus=null,toastTimer;
 
-function openDB(){return openVault(()=>{db=null;persistenceError='Otra pestaña ha actualizado el banco. Recarga antes de guardar.';render();});}
-function readDB(){return readVault(db);}
-async function writeDB(value,options){revision=await writeVault(db,value,revision,options);value.revision=revision;}
+// Docker/Node mode stores the bank on the server (docs/SERVER_VAULT.md); iniciar.py keeps IndexedDB.
+const remote=globalThis.pokevaultServer||null;
+let localBank=null;
+function openDB(){return remote?Promise.resolve(serverBackend(remote)):localBackend(()=>{db=null;persistenceError='Otra pestaña ha actualizado el banco. Recarga antes de guardar.';render();});}
+function readDB(){return db.read();}
+async function writeDB(value,options){revision=await db.write(value,revision,options);value.revision=revision;}
+const where=()=>remote?'el servidor':'este navegador';
 let recoveryState=null, storageStatus={persistent:null,usage:null,quota:null}, unreadable=new Map();
 function rebuild(){
   parsed=new Map();records=new Map();unreadable=new Map();
@@ -46,6 +51,7 @@ async function realImportBase(){
   return saved||fresh();
 }
 async function storageInfo(request=false){
+  if(remote)return;
   try {const manager=navigator.storage;if(!manager)return;
     storageStatus.persistent=request&&manager.persist?await manager.persist():manager.persisted?await manager.persisted():null;
     const estimate=await manager.estimate?.();storageStatus.usage=estimate?.usage;storageStatus.quota=estimate?.quota;
@@ -54,7 +60,7 @@ async function storageInfo(request=false){
 function backupReminder(){
   if(demo||!state.saves.length)return '';
   const old=!state.lastVaultExportAt||Date.now()-Date.parse(state.lastVaultExportAt)>7*86400000;
-  return old||state.backupNeeded?`<div class="warning">${icon('shield')}Conserva una copia fuera del navegador: exporta tu banco .pvault. ${state.lastVaultExportAt?`Última descarga solicitada: ${date(state.lastVaultExportAt)}.`:'Todavía no has descargado un respaldo portátil.'}<button class="btn btn-light btn-small" data-nav="backups">Copias de seguridad</button></div>`:'';
+  return old||state.backupNeeded?`<div class="warning">${icon('shield')}Conserva una copia fuera de ${where()}: exporta tu banco .pvault. ${state.lastVaultExportAt?`Última descarga solicitada: ${date(state.lastVaultExportAt)}.`:'Todavía no has descargado un respaldo portátil.'}<button class="btn btn-light btn-small" data-nav="backups">Copias de seguridad</button></div>`:'';
 }
 function metaSnapshot(reason){return {id:uid(),at:new Date().toISOString(),reason,boxes:structuredClone(state.boxes),favorites:[...state.favorites],notes:{...state.notes},plans:structuredClone(state.plans)};}
 let saving=false;
@@ -65,7 +71,7 @@ async function commit(reason,mutate,{snapshot=true,base=null}={}){
     if(snapshot&&!base){next.snapshots.unshift(metaSnapshot(reason));next.snapshots=next.snapshots.slice(0,25);}
     await mutate(next);
     next.backups=deduplicateBackups(next.backups);
-    if(!demo||base){if(!db)throw new Error('No se puede guardar en este navegador. Revisa el almacenamiento local.');await writeDB(next,{onlyEmpty:demo&&!!base});}
+    if(!demo||base){if(!db)throw new Error(`No se puede guardar en ${where()}. Revisa el almacenamiento.`);await writeDB(next,{onlyEmpty:demo&&!!base,reason});}
     state=next;if(base)demo=false;rebuild();
   }finally{saving=false;document.dispatchEvent(new Event('pokevault-idle'));}
 }
@@ -103,10 +109,10 @@ function sidebar(){const nav=[['bank','grid','Mi banco'],['saves','game','Mis pa
 function titleBlock(title,sub,action=''){return `<div class="page-heading"><div><h1>${title}</h1><p>${sub}</p></div>${action}</div>`;}
 function importButton(text='Importar guardado'){return `<button class="btn btn-primary" data-action="import">${icon('plus')}${text}</button>`;}
 function demoBanner(){return demo?`<div class="demo-banner"><span>${icon('info')}Modo demo · Pokémon de ejemplo. Tus partidas todavía no están importadas.</span><button data-action="exit-demo">Salir de la demo</button></div>`:'';}
-function foot(){return `<footer class="footnote"><span>${icon('lock')}Privado para ti. Guardados procesados y almacenados en este navegador.</span><span>Hecho para tus aventuras clásicas <span aria-hidden="true">✧</span> <button class="text-button" data-nav="guide">Ayuda y compatibilidad</button></span></footer>`;}
+function foot(){return `<footer class="footnote"><span>${icon('lock')}Privado para ti. Guardados procesados en tu navegador y almacenados en ${where()}${remote?' (cifrados)':''}.</span><span>Hecho para tus aventuras clásicas <span aria-hidden="true">✧</span> <button class="text-button" data-nav="guide">Ayuda y compatibilidad</button></span></footer>`;}
 function render(){
   const titles={bank:'Mi banco',saves:'Mis partidas',pokedex:'Pokédex',transfers:'Transferencias',backups:'Copias de seguridad',guide:'Guía R36S'};
-  $('#app').innerHTML=`<div class="shell">${sidebar()}<div class="main-wrap"><header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-haspopup="dialog" aria-label="Abrir menú de navegación">${icon('list')}<span>Menú</span></button><div class="crumb"><span>Mi espacio</span>${icon('chevron')}<strong>${titles[page]||'Mi banco'}</strong></div><div class="topbar-right"><span class="local-label"><span class="dot"></span>${persistenceError?'Almacenamiento no disponible':demo?'Explorando la demo':'Guardado en este navegador'}</span><span class="private-chip">${icon('lock')}Solo tú</span></div></header><main class="content" id="main-content">${persistenceError?`<div class="error-box">${esc(persistenceError)}${recoveryState?'<button class="btn btn-light" id="recover-raw">Descargar recuperación sin modificar</button>':''}</div>`:''}${backupReminder()}${({bank:renderBank,saves:renderSaves,pokedex:renderPokedex,transfers:renderTransfers,backups:renderBackups,guide:renderGuide}[page]||renderBank)()}${foot()}</main></div></div>`;
+  $('#app').innerHTML=`<div class="shell">${sidebar()}<div class="main-wrap"><header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-haspopup="dialog" aria-label="Abrir menú de navegación">${icon('list')}<span>Menú</span></button><div class="crumb"><span>Mi espacio</span>${icon('chevron')}<strong>${titles[page]||'Mi banco'}</strong></div><div class="topbar-right"><span class="local-label"><span class="dot"></span>${persistenceError?'Almacenamiento no disponible':demo?'Explorando la demo':remote?'Guardado en el servidor':'Guardado en este navegador'}</span><span class="private-chip">${icon('lock')}Solo tú</span></div></header><main class="content" id="main-content">${migrationBanner()}${persistenceError?`<div class="error-box">${esc(persistenceError)}${recoveryState?'<button class="btn btn-light" id="recover-raw">Descargar recuperación sin modificar</button>':''}</div>`:''}${backupReminder()}${({bank:renderBank,saves:renderSaves,pokedex:renderPokedex,transfers:renderTransfers,backups:renderBackups,guide:renderGuide}[page]||renderBank)()}${foot()}</main></div></div>`;
   bindGlobal();
   if(page==='pokedex')bindPokedex();if(page==='bank')bindBank();if(page==='transfers')bindTransfers();if(page==='saves')bindSaves();if(page==='backups')bindBackups();
 }
@@ -293,11 +299,11 @@ async function exportTransfer(){
   }catch(e){$('#export-error').innerHTML=`<div class="error-box">${esc(errorText(e))}</div>`;button.disabled=false;button.textContent='Reintentar exportación';}
 }
 
-function renderBackups(){return titleBlock('Cada aventura merece un respaldo','Originales, puntos de restauración y una copia portátil de tu banco.',`<button class="btn btn-primary" id="backup-all" ${demo||!state.saves.length?'disabled':''}>${icon('download')}Exportar banco</button>`)+demoBanner()+storagePanel()+`<div class="hero-mini">${icon('shield')}<div><h3>Tus originales no se tocan.</h3><p>Las copias locales viven en este navegador. Exporta tu banco para conservarlo también fuera de él.</p></div></div><div class="panel"><div class="panel-header"><div><h3>Respaldo portátil</h3><p>El archivo .pvault v2 incluye originales, respaldos, hashes, cajas, favoritos, notas, puntos de restauración e historial. Lee también respaldos v1.</p></div><button class="btn btn-light" id="restore-vault">${icon('upload')}Restaurar respaldo</button></div><p>La restauración valida todos los guardados y fusiona los que falten. Conserva tus partidas y la organización actual; no sobrescribe datos existentes.</p><input type="file" id="vault-file" accept=".pvault" hidden><div id="restore-status"></div></div><div class="panel"><div class="panel-header"><h3>Originales protegidos</h3><span class="badge">${demo?0:state.backups.length} copias</span></div>${!demo&&state.backups.length?state.backups.slice().reverse().map(b=>`<div class="log-item"><div class="log-icon">${icon('shield')}</div><div class="log-info"><strong>${esc(b.name)}</strong><span>${esc(b.reason)} · ${date(b.at)} · ${sizeLabel(b.bytes.length)}</span></div><button class="btn btn-light btn-small" data-backup-download="${b.id}">${icon('download')}Descargar</button></div>`).join(''):'<p class="backup-empty">Al importar tus partidas se creará aquí una copia de cada original.</p>'}</div><div class="panel"><div class="panel-header"><div><h3>Historial de organización</h3><p>Se conservan los últimos 25 estados anteriores a cambios en el banco.</p></div></div>${!demo&&state.snapshots.length?state.snapshots.map(s=>`<div class="log-item"><div class="log-icon">${icon('clock')}</div><div class="log-info"><strong>${esc(s.reason)}</strong><span>${date(s.at)} · ${s.boxes.length} cajas</span></div><button class="btn btn-light btn-small" data-restore-meta="${s.id}">${icon('refresh')}Restaurar</button></div>`).join(''):'<p class="backup-empty">Los cambios de cajas, favoritos y notas crearán puntos de restauración.</p>'}</div>`;}
-function portableVault(){
-  const blobs={};for(const item of [...state.saves,...state.backups])blobs[item.hash]??=toBase64(item.bytes);
+function renderBackups(){return titleBlock('Cada aventura merece un respaldo','Originales, puntos de restauración y una copia portátil de tu banco.',`<button class="btn btn-primary" id="backup-all" ${demo||!state.saves.length?'disabled':''}>${icon('download')}Exportar banco</button>`)+demoBanner()+storagePanel()+`<div class="hero-mini">${icon('shield')}<div><h3>Tus originales no se tocan.</h3><p>${remote?'Tu banco vive cifrado en el servidor. Exporta también una copia .pvault para conservarla fuera de él.':'Las copias locales viven en este navegador. Exporta tu banco para conservarlo también fuera de él.'}</p></div></div><div class="panel"><div class="panel-header"><div><h3>Respaldo portátil</h3><p>El archivo .pvault v2 incluye originales, respaldos, hashes, cajas, favoritos, notas, puntos de restauración e historial. Lee también respaldos v1.</p></div><button class="btn btn-light" id="restore-vault">${icon('upload')}Restaurar respaldo</button></div><p>La restauración valida todos los guardados y fusiona los que falten. Conserva tus partidas y la organización actual; no sobrescribe datos existentes.</p><input type="file" id="vault-file" accept=".pvault" hidden><div id="restore-status"></div></div><div class="panel"><div class="panel-header"><h3>Originales protegidos</h3><span class="badge">${demo?0:state.backups.length} copias</span></div>${!demo&&state.backups.length?state.backups.slice().reverse().map(b=>`<div class="log-item"><div class="log-icon">${icon('shield')}</div><div class="log-info"><strong>${esc(b.name)}</strong><span>${esc(b.reason)} · ${date(b.at)} · ${sizeLabel(b.bytes.length)}</span></div><button class="btn btn-light btn-small" data-backup-download="${b.id}">${icon('download')}Descargar</button></div>`).join(''):'<p class="backup-empty">Al importar tus partidas se creará aquí una copia de cada original.</p>'}</div><div class="panel"><div class="panel-header"><div><h3>Historial de organización</h3><p>Se conservan los últimos 25 estados anteriores a cambios en el banco.</p></div></div>${!demo&&state.snapshots.length?state.snapshots.map(s=>`<div class="log-item"><div class="log-icon">${icon('clock')}</div><div class="log-info"><strong>${esc(s.reason)}</strong><span>${date(s.at)} · ${s.boxes.length} cajas</span></div><button class="btn btn-light btn-small" data-restore-meta="${s.id}">${icon('refresh')}Restaurar</button></div>`).join(''):'<p class="backup-empty">Los cambios de cajas, favoritos y notas crearán puntos de restauración.</p>'}</div>`;}
+function portableVault(source=state){
+  const blobs={};for(const item of [...source.saves,...source.backups])blobs[item.hash]??=toBase64(item.bytes);
   const strip=({bytes,demo,...metadata})=>metadata;
-  return {format:'pokevault-backup',schema:2,createdAt:new Date().toISOString(),blobs,saves:state.saves.map(strip),backups:state.backups.map(strip),boxes:state.boxes,favorites:state.favorites,notes:state.notes,snapshots:state.snapshots,plans:state.plans,consumed:consumedLedger(state)};
+  return {format:'pokevault-backup',schema:2,createdAt:new Date().toISOString(),blobs,saves:source.saves.map(strip),backups:source.backups.map(strip),boxes:source.boxes,favorites:source.favorites,notes:source.notes,snapshots:source.snapshots,plans:source.plans,consumed:consumedLedger(source)};
 }
 async function exportVault(){
   const before=state,beforeRevision=revision;
@@ -310,12 +316,60 @@ async function exportVault(){
   }catch(e){toast(errorText(e));}
 }
 function storagePanel(){
+  if(remote)return serverPanel();
   const mb=n=>Number.isFinite(n)?`${(n/1048576).toFixed(1)} MiB`:'No disponible';
   return `<div class="panel"><h3>Almacenamiento de este navegador</h3><p>Persistencia concedida: ${storageStatus.persistent===null?'No disponible':storageStatus.persistent?'Sí':'No'}. Uso aproximado: ${mb(storageStatus.usage)} · Cuota: ${mb(storageStatus.quota)}.</p><p>El navegador decide si concede persistencia. Borrar sus datos o perder el dispositivo también borra el banco. Conserva una copia .pvault fuera del navegador.</p><button class="btn btn-light" id="request-persistence">Solicitar almacenamiento persistente</button></div>`;
 }
+function migrationBanner(){
+  if(!remote||!localBank?.saves?.length||page==='backups')return '';
+  return `<div class="warning">${icon('info')}<span>Este navegador conserva un banco anterior (${localBank.saves.length} partida${localBank.saves.length===1?'':'s'}) que no está en el servidor. <button class="text-button" data-nav="backups">Revisar en Copias de seguridad</button></span></div>`;
+}
+function serverPanel(){
+  const serverHasSaves=state.saves.length&&!demo,n=localBank?.saves?.length||0;
+  const local=n?`<div class="warning">${icon('info')}<div><p><strong>Este navegador conserva un banco anterior</strong> con ${n} partida${n===1?'':'s'}. ${serverHasSaves?'El servidor ya tiene partidas: descarga el respaldo de este navegador y restáuralo aquí; se fusiona sin sobrescribir nada.':'Puedes subirlo al servidor. Se verificará antes de usarlo y la copia del navegador no se borra.'}</p><div class="modal-actions">${serverHasSaves?'':`<button class="btn btn-primary btn-small" id="upload-local">${icon('upload')}Subir al servidor</button>`}<button class="btn btn-light btn-small" id="download-local">${icon('download')}Respaldo de este navegador</button><button class="btn btn-light btn-small" id="delete-local">Borrar copia del navegador</button></div></div></div>`:'';
+  return `<div class="panel"><h3>Banco en el servidor</h3><p>Partidas, respaldos y organización se guardan cifrados en el servidor y se ven igual desde cualquier dispositivo. Revisión actual: ${revision||'—'}. Se conservan las últimas 50 versiones.</p>${local}<button class="btn btn-light" id="server-history">${icon('clock')}Versiones del servidor</button></div>`;
+}
+async function exclusive(task){
+  if(saving)throw new Error('Hay una operación en curso. Espera un momento.');saving=true;
+  try{return await task();}finally{saving=false;document.dispatchEvent(new Event('pokevault-idle'));}
+}
+// Explicit, verified upload of a pre-server browser bank. The local copy is kept.
+function uploadLocalBank(){return exclusive(async()=>{
+  if(state.saves.length&&!demo)throw new Error('El servidor ya tiene partidas. Usa el respaldo de este navegador para fusionarlo.');
+  const next=cloneVault(localBank);next.backups=deduplicateBackups(next.backups);
+  const written=await db.write(next,revision,{onlyEmpty:true,reason:'Subir banco del navegador'});
+  const check=await db.read(),hashes=s=>[...new Set([...s.saves,...s.backups].map(i=>i.hash))].sort().join();
+  if(check.revision!==written||hashes(check)!==hashes(localBank)||check.saves.length!==localBank.saves.length||check.boxes.length!==localBank.boxes.length)throw new Error('La comprobación tras subir no coincide. No borres la copia del navegador y revisa el servidor.');
+  state=check;revision=written;demo=false;rebuild();selected.clear();transferKeys=[];
+});}
+function restoreServerRevision(target){return exclusive(async()=>{
+  await db.restore(target,revision);const check=await db.read();state=check;revision=check.revision;rebuild();selected.clear();transferKeys=[];
+});}
+async function showServerHistory(){
+  try{
+    const list=await db.history();
+    showModal(`<div class="eyebrow">BANCO EN EL SERVIDOR</div><h2>Versiones guardadas</h2><p class="modal-sub">Restaurar crea una versión nueva; no borra las posteriores. Las versiones movidas siguen consumidas.</p>${list.map(r=>`<div class="log-item"><div class="log-icon">${icon('clock')}</div><div class="log-info"><strong>Revisión ${r.revision}${r.current?' · actual':''}</strong><span>${date(r.savedAt)} · ${esc(r.reason||'Cambio')} · ${r.saves} partida${r.saves===1?'':'s'}</span></div>${r.current?'':`<button class="btn btn-light btn-small" data-server-restore="${r.revision}">${icon('refresh')}Restaurar</button>`}</div>`).join('')||'<p class="backup-empty">Todavía no hay versiones.</p>'}<div class="modal-actions"><button class="btn btn-light" data-close>Cerrar</button></div>`,()=>{
+      $$('[data-server-restore]').forEach(b=>b.onclick=async()=>{
+        if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Confirmar restauración';return;}
+        try{await restoreServerRevision(Number(b.dataset.serverRestore));closeModal();render();toast('Versión restaurada como revisión nueva.');}catch(e){toast(errorText(e));}
+      });
+    },true);
+  }catch(e){toast(errorText(e));}
+}
+function bindServerPanel(){
+  if(!remote)return;
+  $('#server-history')?.addEventListener('click',showServerHistory);
+  $('#upload-local')?.addEventListener('click',async e=>{e.currentTarget.disabled=true;try{await uploadLocalBank();render();toast('Banco subido y verificado en el servidor. La copia del navegador se conserva.');}catch(error){toast(errorText(error));render();}});
+  $('#download-local')?.addEventListener('click',()=>presentDownload(JSON.stringify(portableVault(localBank),null,2),`pokevault-navegador-${stamp()}.pvault`,'application/json','Respaldo del banco que estaba en este navegador. Restáuralo en el servidor para fusionarlo.'));
+  $('#delete-local')?.addEventListener('click',()=>showModal(`<div class="eyebrow">COPIA DEL NAVEGADOR</div><h2>Borrar el banco de este navegador</h2><p class="modal-sub">Solo borra la copia antigua de este navegador; el servidor no cambia. No se puede deshacer.</p><div class="checklist"><label><input type="checkbox" id="local-ack">He comprobado que sus partidas están en el servidor o he descargado su respaldo.</label></div><div class="modal-actions"><button class="btn btn-light" data-close>Cancelar</button><button class="btn btn-primary" id="confirm-delete-local" disabled>Borrar copia del navegador</button></div>`,()=>{
+    $('#local-ack').onchange=e=>$('#confirm-delete-local').disabled=!e.target.checked;
+    $('#confirm-delete-local').onclick=async()=>{try{await deleteLocalBank();localBank=null;closeModal();render();toast('Copia del navegador borrada. El banco del servidor no ha cambiado.');}catch(e){toast(errorText(e));}};
+  }));
+}
 function bindBackups(){
   $('#backup-all').onclick=exportVault;
-  $('#request-persistence').onclick=async()=>{await storageInfo(true);render();};
+  $('#request-persistence')?.addEventListener('click',async()=>{await storageInfo(true);render();});
+  bindServerPanel();
   $('#restore-vault').onclick=()=>$('#vault-file').click();$('#vault-file').onchange=restoreVault;
   $$('[data-backup-download]').forEach(b=>b.onclick=()=>{const x=state.backups.find(x=>x.id===b.dataset.backupDownload);download(x.bytes,`respaldo-${safeName(x.name)}`);});
   $$('[data-restore-meta]').forEach(b=>b.onclick=()=>{
@@ -431,10 +485,11 @@ function showImport(){
 document.addEventListener('click',e=>{if(e.target.closest('#download-guide'))download(INSTALL_TEXT,'pokevault-guia-r36s.txt','text/plain;charset=utf-8');});
 async function init(){
   try{
-    db=await openDB();recoveryState=await dumpVault(db);const saved=await readDB();
+    db=await openDB();recoveryState=await db.dump();const saved=await readDB();
     if(saved){validateState(saved);if(saved.saves.some(s=>!GAMES[s.game]))throw new Error('Juego desconocido en el banco.');state=saved;revision=saved.revision??0;rebuild();}
     recoveryState=null;
   }catch(e){persistenceError=`${errorText(e)} No se sobrescribirá el banco. Conserva una recuperación antes de cambiar de versión.`;db?.close();db=null;state=fresh();}
+  if(remote&&!persistenceError){try{localBank=await readLocalBank();}catch{localBank=null;}}
   if(!state.saves.length&&!persistenceError){let dismissed=false;try{dismissed=sessionStorage.getItem('pv-demo-dismissed')==='1';}catch{}if(!dismissed)await seedDemo();else rebuild();}
   await storageInfo();
   if(['bank','saves','pokedex','transfers','backups','guide'].includes(location.hash.slice(1)))page=location.hash.slice(1);

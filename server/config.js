@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { parseHash } from './password.js';
+import { parseKey } from './vault-store.js';
 
 function secret(env, key) {
   if (env[`${key}_FILE`]) return readFileSync(env[`${key}_FILE`], 'utf8').trim();
@@ -25,4 +26,13 @@ export function readConfig(env = process.env) {
   }
   return { username, passwordHash, sessionSecret, origin: url.origin, host: url.host, secure, trustProxy,
     idleMs: 30 * 60_000, absoluteMs: 8 * 60 * 60_000, preauthMs: 10 * 60_000 };
+}
+
+// Server-side bank (docs/SERVER_VAULT.md). Required by the Docker/Node entry point.
+export function readVaultConfig(env = process.env) {
+  const key = parseKey(secret(env, 'POKEVAULT_DATA_KEY'));
+  const dir = env.POKEVAULT_DATA_DIR || '/data';
+  const quotaMB = Number(env.POKEVAULT_VAULT_QUOTA_MB || 2048);
+  if (!Number.isInteger(quotaMB) || quotaMB < 64 || quotaMB > 65536) throw new Error('POKEVAULT_VAULT_QUOTA_MB debe estar entre 64 y 65536.');
+  return { key, dir, quotaBytes: quotaMB * 1024 * 1024 };
 }

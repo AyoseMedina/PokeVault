@@ -5,6 +5,22 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Banco en el servidor (sin despliegue)
+
+- En Docker/Node el banco completo se guarda en el volumen `pokevault_data`,
+  cifrado con AES-256-GCM y la clave `POKEVAULT_DATA_KEY` (obligatoria; sin ella
+  no arranca). Escritura atómica, originales sin duplicados por SHA-256, control de
+  revisión con If-Match (409 ante cambios de otro dispositivo) y 50 versiones
+  restaurables sin liberar versiones movidas.
+- El servidor vuelve a validar esquema, tamaños, cuota, partidas nuevas con el
+  mismo lector y el registro de versiones consumidas. El navegador comprueba el
+  SHA-256 de cada original descargado.
+- Subida explícita y verificada del banco anterior del navegador; la copia local
+  solo se borra con confirmación. `iniciar.py` sigue usando IndexedDB.
+- `vault-admin.mjs verify | rotate-key`, volumen y clave en los tres Compose,
+  generador de credenciales y guías. Probado en Chromium y en Docker (raíz de
+  solo lectura, reinicio y permisos del volumen).
+
 ## 2026-11-03 · Pokédex en español (sin despliegue)
 
 - PokéAPI no tiene texto español para ninguna edición de generación I–V. En

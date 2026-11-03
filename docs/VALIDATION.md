@@ -60,6 +60,7 @@ npm install --prefix .test-output/ui-check --no-save playwright@1.64.1
 npx --prefix .test-output/ui-check playwright install chromium
 npm run test:browser
 npm run test:browser:move
+npm run test:browser:vault
 ```
 
 La suite comprueba el banco con una partida sin Pokémon, demo y cambios desde

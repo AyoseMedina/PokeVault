@@ -13,7 +13,7 @@ function signIn(){
 }
 document.addEventListener('pokevault-idle',()=>{if(expired)setTimeout(signIn,0);});
 if (channel) channel.onmessage = event => { if (event.data === 'logout') signIn(); };
-let csrf = '', activityPending = false, lastPing = 0, checking = false, exiting = false;
+let csrf = '', serverVault = false, activityPending = false, lastPing = 0, checking = false, exiting = false;
 
 async function checkSession() {
   if (checking || exiting || expired) return;
@@ -22,7 +22,7 @@ async function checkSession() {
     const response = await fetch('/auth/session', { cache: 'no-store', credentials: 'same-origin' });
     if (response.status === 401) { signIn(); return false; }
     if (!response.ok) throw new Error('No se pudo comprobar la sesión.');
-    const data = await response.json(); csrf = data.csrf;
+    const data = await response.json(); csrf = data.csrf; serverVault = data.vault === true;
     return true;
   } finally { checking = false; }
 }
@@ -39,7 +39,7 @@ function mountLogout() {
   const header = document.querySelector('.topbar-right');
   if (!header || header.querySelector('[data-auth-logout]')) return;
   const button = document.createElement('button'); button.type = 'button'; button.className = 'auth-logout'; button.dataset.authLogout = '';
-  button.textContent = 'Cerrar sesión'; button.title = 'El banco permanece sin cifrar en este perfil del navegador; cerrar sesión no lo borra';
+  button.textContent = 'Cerrar sesión'; button.title = serverVault ? 'Tu banco está cifrado en el servidor; cerrar sesión no lo borra' : 'El banco permanece sin cifrar en este perfil del navegador; cerrar sesión no lo borra';
   button.onclick = async () => {
     if (exiting) return; exiting = true; button.disabled = true;
     try {
@@ -52,6 +52,8 @@ function mountLogout() {
 }
 try {
   if (await checkSession()) {
+    // The bank lives on the server (docs/SERVER_VAULT.md); app.js reads this before opening storage.
+    if (serverVault) globalThis.pokevaultServer = Object.freeze({ csrf: () => csrf, unauthorized: signIn });
     await import('/app.js');
     new MutationObserver(mountLogout).observe(document.getElementById('app'), { childList:true, subtree:true });
     mountLogout();

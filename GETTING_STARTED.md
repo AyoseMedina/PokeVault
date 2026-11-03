@@ -87,10 +87,14 @@ docker build -t pokevault .
 docker run --rm -it pokevault node server/create-credentials.mjs
 ```
 
-Copy the three printed variables into a local `.env` file or Portainer stack
-variables: `POKEVAULT_USERNAME`, `POKEVAULT_PASSWORD_HASH` and
-`POKEVAULT_SESSION_SECRET`. Do not publish them or paste them into the GitHub
-Compose file. There is no default account or password.
+Copy the four printed variables into a local `.env` file or Portainer stack
+variables: `POKEVAULT_USERNAME`, `POKEVAULT_PASSWORD_HASH`,
+`POKEVAULT_SESSION_SECRET` and `POKEVAULT_DATA_KEY`. Do not publish them or paste
+them into the GitHub Compose file. There is no default account or password.
+
+> **Also keep `POKEVAULT_DATA_KEY` outside the server** (password manager). It
+> encrypts your bank on the `pokevault_data` volume: **losing it loses the bank**,
+> even with volume backups. The server does not start without it.
 
 ### Local: ready without a domain
 
@@ -191,6 +195,8 @@ purchased or created automatically. Use local mode until you have one.
    | `POKEVAULT_USERNAME` | Generated, required | Required | Required |
    | `POKEVAULT_PASSWORD_HASH` | Generated, required | Required | Required |
    | `POKEVAULT_SESSION_SECRET` | Generated, required | Required | Required |
+   | `POKEVAULT_DATA_KEY` | Generated, required; keep a copy | Required | Required |
+   | `POKEVAULT_VAULT_QUOTA_MB` | Optional, 2048 | Optional | Optional |
    | `POKEVAULT_ORIGIN` | Public HTTPS URL, required | Optional existing local origin | Derived from domain |
    | `POKEVAULT_TRUST_PROXY` | Proxy IP or exclusive subnet, required | Unused | Automatic on isolated network |
    | `POKEVAULT_PORT` | Unused; internal port 8080 | Optional, 8080 | Unused |
@@ -273,9 +279,28 @@ enable the **custom Crystal → GBA** option. Review generated identity fields,
 DVs/IVs, training and synthetic origin before export. The ZIP keeps both originals.
 See the [custom policy and restrictions](docs/CUSTOM_TRANSFER.md#english).
 
-## Move your bank
+## Server-side bank (Docker)
 
-Saves are kept in browser storage. Your local bank is independent of the bank
+With Docker/Node the whole bank (saves, backups, boxes, notes, history and
+consumed versions) is stored **encrypted on the `pokevault_data` volume** and is
+the same on every device. The last 50 revisions are kept; **Backups → Server
+versions** restores one as a new revision without releasing moved versions.
+Details: [docs/SERVER_VAULT.md](docs/SERVER_VAULT.md).
+
+- **Old browser bank:** detected after sign-in. With an empty server, **Upload to
+  server** copies and verifies it; otherwise download its backup and restore it
+  (merge). The browser copy is deleted only after confirmation.
+- **Volume backup** (stack stopped or paused):
+  `docker run --rm -v pokevault_data:/data -v "$PWD":/copia alpine tar czf /copia/pokevault-data.tgz -C /data .`
+  Keep the key separately.
+- **Verify:** `docker exec <container> node server/vault-admin.mjs verify`.
+- **Rotate the key:** stop the app, run `POKEVAULT_NEW_DATA_KEY=<new> node server/vault-admin.mjs rotate-key`
+  with the same volume, then set the new value as `POKEVAULT_DATA_KEY`.
+- Export a `.pvault` from time to time as a copy outside the server.
+
+## Move your bank (local mode without sign-in)
+
+With `iniciar.py`, saves are kept in browser storage. Your local bank is independent of the bank
 at another hosted address: export a `.pvault` there and import it here to move
 your data. Keep the same browser, address and port to reopen the same local
 bank. Changing the web origin changes the visible storage.

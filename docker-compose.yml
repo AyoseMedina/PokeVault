@@ -14,14 +14,21 @@ services:
       POKEVAULT_USERNAME: "${POKEVAULT_USERNAME:?Create your credentials first}"
       POKEVAULT_PASSWORD_HASH: "${POKEVAULT_PASSWORD_HASH:?Create your credentials first}"
       POKEVAULT_SESSION_SECRET: "${POKEVAULT_SESSION_SECRET:?Create your credentials first}"
+      # Bank encryption key: keep a copy outside the server. Losing it loses the bank.
+      POKEVAULT_DATA_KEY: "${POKEVAULT_DATA_KEY:?Create your credentials first}"
       POKEVAULT_ORIGIN: "${POKEVAULT_ORIGIN:?Set the public HTTPS URL without a trailing slash}"
       POKEVAULT_TRUST_PROXY: "${POKEVAULT_TRUST_PROXY:?Set the IP or restricted CIDR of your proxy}"
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    # Encrypted bank and account data (docs/SERVER_VAULT.md).
+    volumes:
+      - pokevault_data:/data
     init: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }
+volumes:
+  pokevault_data:
