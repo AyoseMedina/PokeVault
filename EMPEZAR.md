@@ -302,6 +302,32 @@ versión nueva y nunca libera versiones movidas). Detalles: [docs/SERVER_VAULT.m
   pon la nueva como `POKEVAULT_DATA_KEY`. La carpeta anterior queda como `vault.old-*`.
 - Exporta también un `.pvault` de vez en cuando: es tu copia fuera del servidor.
 
+## Cuenta y correo (Docker)
+
+En **Cuenta** (menú lateral) puedes confirmar tu correo, cambiar la contraseña y
+elegir avisos. La contraseña y el correo se guardan cifrados en el volumen
+(`/data/account.enc`): **después del primer arranque, `POKEVAULT_PASSWORD_HASH`
+de Portainer ya no se usa**. Detalles: [docs/ACCOUNT_EMAIL.md](docs/ACCOUNT_EMAIL.md).
+
+Correo con Gmail (opcional; sin él todo funciona salvo avisos y recuperación):
+
+1. En tu cuenta de Google activa la **verificación en dos pasos** y crea una
+   **contraseña de aplicación** (Seguridad → Contraseñas de aplicaciones).
+2. En Portainer añade: `POKEVAULT_SMTP_HOST=smtp.gmail.com`, `POKEVAULT_SMTP_PORT=465`,
+   `POKEVAULT_SMTP_USER=tu.correo@gmail.com`, `POKEVAULT_SMTP_PASSWORD=<contraseña de aplicación>`
+   y `POKEVAULT_SMTP_FROM=PokéVault <tu.correo@gmail.com>`. Solo se admite TLS (465 o 587).
+3. Vuelve a desplegar, entra en **Cuenta**, escribe tu correo y confirma el enlace.
+
+- **¿Olvidaste la contraseña?** En el login, «¿Necesitas recuperar el acceso?» →
+  enlace de un solo uso (15 minutos) a tu correo verificado. Cierra todas las sesiones.
+- **Sin acceso al correo:** genera un hash nuevo con `create-credentials.mjs`, ponlo
+  en `POKEVAULT_PASSWORD_HASH`, **detén la aplicación** y ejecuta con el mismo
+  volumen y variables `node server/vault-admin.mjs reset-account`; después arráncala.
+- Los avisos de seguridad (contraseña cambiada o restablecida, cambio de correo,
+  bloqueo por intentos) llegan siempre. El resumen semanal, los aniversarios, los
+  movimientos y el recordatorio de respaldo se activan uno a uno; los que incluyen
+  Pokémon envían especie, mote, nivel y juego a tu proveedor de correo.
+
 ## Trasladar tu banco (modo local sin login)
 
 Con `iniciar.py` los guardados se conservan en el almacenamiento del navegador,

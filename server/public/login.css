@@ -19,3 +19,4 @@
   .access-panel{padding:20px max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left))}
   .form-wrap{padding-top:16px}
 }
+.recover-shell{grid-template-columns:minmax(0,520px);justify-content:center}

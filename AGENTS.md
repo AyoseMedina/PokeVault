@@ -94,7 +94,7 @@ defecto, registro público ni un modo sin autenticación al despliegue Docker.
 Mantén el HTTP de desarrollo limitado al host; fuera de él requiere HTTPS.
 Cerrar sesión no debe borrar ni reinicializar IndexedDB.
 
-El usuario autorizó (2026-11-03) la cuenta con correo según
+El usuario autorizó (2026-11-03), y está implementada, la cuenta con correo según
 `docs/ACCOUNT_EMAIL.md`: datos de la cuenta en un volumen persistente, SMTP con
 TLS, cambio y recuperación de contraseña por enlace, y avisos que pueden incluir
 un resumen mínimo de Pokémon enviado desde el navegador, que el servidor envía

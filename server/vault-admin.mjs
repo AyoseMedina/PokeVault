@@ -1,10 +1,12 @@
 // Bank maintenance (docs/SERVER_VAULT.md). Run inside the container:
 //   node server/vault-admin.mjs verify
 //   POKEVAULT_NEW_DATA_KEY=<64 hex> node server/vault-admin.mjs rotate-key
+//   node server/vault-admin.mjs reset-account   (emergency: account from the env variables)
 // Stop the app container first for rotate-key (or run it with the same volume while stopped).
 import { mkdir, readdir, readFile, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { readVaultConfig } from './config.js';
+import { readConfig, readVaultConfig } from './config.js';
+import { openAccountStore } from './account-store.js';
 import { VaultStore, openVaultStore, decrypt, encrypt, atomicWrite, parseKey, HASH } from './vault-store.js';
 
 export async function verify(store) {
@@ -12,6 +14,15 @@ export async function verify(store) {
   for (const revision of revisions) { const { state } = await store.readRevision(revision); for (const item of [...state.saves, ...state.backups]) hashes.add(item.hash); }
   for (const hash of hashes) await store.readBlob(hash); // decrypts and checks SHA-256
   return { head: await store.head(), revisions: revisions.length, originals: hashes.size };
+}
+
+// Emergency recovery without email (docs/ACCOUNT_EMAIL.md §1): copies
+// POKEVAULT_USERNAME/PASSWORD_HASH into the account and closes every session.
+// Run it with the app stopped, then start the app again.
+export async function resetAccount(dir, key, { username, passwordHash }) {
+  const account = await openAccountStore(dir, key, { username, passwordHash });
+  await account.update(a => { Object.assign(a, { username, passwordHash, reset: null, passwordChangedAt: new Date().toISOString() }); a.sessionEpoch++; });
+  return { username, sessionEpoch: account.get().sessionEpoch };
 }
 
 // Re-encrypts everything into vault.new, verifies it, then swaps directories.
@@ -43,6 +54,9 @@ if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/').replace(/^
     else if (command === 'rotate-key') {
       const result = await rotateKey(config.dir, config.key, parseKey(process.env.POKEVAULT_NEW_DATA_KEY));
       console.log({ ...result, next: 'Pon POKEVAULT_NEW_DATA_KEY como POKEVAULT_DATA_KEY en Portainer, arranca y borra la carpeta previous cuando lo compruebes.' });
-    } else console.log('Uso: node server/vault-admin.mjs verify | rotate-key');
+    } else if (command === 'reset-account') {
+      console.log(await resetAccount(config.dir, config.key, readConfig()));
+      console.log('Cuenta restablecida. Arranca de nuevo la aplicación.');
+    } else console.log('Uso: node server/vault-admin.mjs verify | rotate-key | reset-account');
   } catch (error) { console.error(`PokéVault: ${error.message}`); process.exitCode = 1; }
 }

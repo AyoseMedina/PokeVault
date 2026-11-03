@@ -5,6 +5,19 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Cuenta y correo (sin despliegue)
+
+- Página «Cuenta»: correo con confirmación por enlace, cambio de contraseña (cierra
+  las demás sesiones) y avisos por correo. Datos cifrados en `/data/account.enc`.
+- Recuperación con enlace de un solo uso (15 min, token en el fragmento, misma
+  respuesta siempre, 1 cada 5 min y 3 por hora) y reinicio de emergencia
+  `vault-admin.mjs reset-account`.
+- SMTP solo con TLS (465/587), `nodemailer` 10.1.7 fijado, límites de envío,
+  plantillas escapadas y sin registrar contenido. Avisos de seguridad siempre;
+  resumen semanal, aniversarios, movimientos y recordatorio de respaldo opcionales,
+  generados en el servidor desde el banco.
+- Pruebas de servidor y Chromium (confirmación, avisos, cambio y recuperación).
+
 ## 2026-11-03 · Sprites variocolor y animados (sin despliegue)
 
 - Los Pokémon variocolor se muestran con su sprite variocolor (banco, ficha,

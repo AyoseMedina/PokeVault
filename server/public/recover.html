@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#191b22"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>PokéVault · Recuperar acceso</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/auth-assets/login.css">
+  <script type="module" src="/auth-assets/recover.js"></script>
+</head>
+<body>
+  <main class="access-shell recover-shell">
+    <section class="access-panel" aria-labelledby="recover-title">
+      <div class="panel-top"><a class="private-mark" href="/login"><span></span><span>POKÉVAULT</span></a></div>
+      <div class="form-wrap"><div class="lock-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5zM12 14v3"/></svg></div>
+        <p class="eyebrow" id="recover-eyebrow">RECUPERAR ACCESO</p>
+        <h2 id="recover-title">¿Olvidaste tu contraseña?</h2>
+        <p class="subtitle" id="recover-subtitle">Te enviaremos un enlace al correo verificado de la cuenta. Caduca en 15 minutos.</p>
+        <form id="forgot-form" hidden>
+          <p class="status" id="forgot-status" role="status" aria-live="polite"></p>
+          <button class="submit" id="forgot-submit" type="submit" disabled><span>Enviar enlace</span><span aria-hidden="true">→</span></button>
+        </form>
+        <form id="reset-form" hidden>
+          <label for="new-password">Contraseña nueva (15–128 caracteres)</label>
+          <input id="new-password" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+          <label for="repeat-password">Repítela</label>
+          <input id="repeat-password" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+          <p class="status" id="reset-status" role="status" aria-live="polite"></p>
+          <button class="submit" id="reset-submit" type="submit" disabled><span>Guardar contraseña</span><span aria-hidden="true">→</span></button>
+        </form>
+        <p class="status" id="confirm-status" role="status" aria-live="polite" hidden></p>
+        <noscript><p>Activa JavaScript / Enable JavaScript.</p></noscript>
+        <p class="session-note"><a href="/login">Volver al acceso / Back to sign in</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

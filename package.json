@@ -13,6 +13,7 @@
     "test:auth": "node --test server/tests/*.test.js",
     "test:browser": "node tests/browser-review.mjs",
     "test:browser:move": "node tests/browser-move.mjs",
-    "test:browser:vault": "node tests/browser-server-vault.mjs"
+    "test:browser:vault": "node tests/browser-server-vault.mjs",
+    "test:browser:account": "node tests/browser-account.mjs"
   }
 }

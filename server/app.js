@@ -6,7 +6,9 @@ import helmet from 'helmet';
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { sameString, verifyPassword } from './password.js';
+import { sameString, verifyPassword, hashPassword, validPassword } from './password.js';
+import { AccountStore, EMAIL, newToken, validNotify } from './account-store.js';
+import { message } from './mailer.js';
 import { VaultError } from './vault-store.js';
 import { makeValidator, SAVE_SIZES } from './vault-validate.js';
 import { mergeConsumed } from '../dist/consumed.js';
@@ -18,7 +20,18 @@ const token = () => randomBytes(32).toString('hex');
 const regenerate = req => new Promise((resolve, reject) => req.session.regenerate(e => e ? reject(e) : resolve()));
 const save = req => new Promise((resolve, reject) => req.session.save(e => e ? reject(e) : resolve()));
 
-export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = readFileSync(`${distDir}/index.html`, 'utf8'), vault = null, vaultQuotaBytes = 2 * 1024 ** 3 } = {}) {
+export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = readFileSync(`${distDir}/index.html`, 'utf8'), vault = null, vaultQuotaBytes = 2 * 1024 ** 3, account = null, mailer = null } = {}) {
+  // The account on the volume (docs/ACCOUNT_EMAIL.md) replaces the environment credentials once created.
+  const credentials = () => account ? account.get() : { username: config.username, passwordHash: config.passwordHash, sessionEpoch: 1, notify: {}, email: null, emailVerified: false };
+  const notices = new Map();
+  // Security notices go only to a verified address; repeated kinds are spaced out.
+  const notify = (kind, title, paragraphs, { every = 0 } = {}) => {
+    const user = credentials();
+    if (!mailer || !user.emailVerified || !user.email) return;
+    if (every && now() - (notices.get(kind) || 0) < every) return;
+    notices.set(kind, now());
+    mailer.send({ to: user.email, kind, security: true, ...message(title, paragraphs) }).catch(() => {});
+  };
   const app = express();
   app.disable('x-powered-by'); app.disable('etag');
   app.set('trust proxy', config.trustProxy.length ? config.trustProxy : false);
@@ -57,7 +70,7 @@ export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = 
   app.use((req, res, next) => {
     const s = req.session;
     const expired = s.authenticated
-      ? now() - s.issuedAt >= config.absoluteMs || now() - s.lastActive >= config.idleMs
+      ? now() - s.issuedAt >= config.absoluteMs || now() - s.lastActive >= config.idleMs || s.epoch !== credentials().sessionEpoch
       : s.createdAt && now() - s.createdAt >= config.preauthMs;
     if (expired) return req.session.regenerate(error => { clearCookie(res); if (error) return next(error); next(); });
     next();
@@ -78,7 +91,10 @@ export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = 
     next();
   };
   const onlyJSON = (req, res, next) => req.is('application/json') ? next() : res.status(415).json({ error: 'json_required' });
-  const throttled = (_req, res) => res.status(429).json({ error: 'too_many_attempts' });
+  const throttled = (_req, res) => {
+    notify('lockout', 'Demasiados intentos de acceso a PokéVault', ['Se han bloqueado temporalmente varios intentos fallidos de inicio de sesión o de contraseña.', 'Si no has sido tú, cambia tu contraseña desde «Cuenta».'], { every: 3_600_000 });
+    res.status(429).json({ error: 'too_many_attempts' });
+  };
   const limitOptions = { windowMs: 15 * 60_000, standardHeaders: 'draft-8', legacyHeaders: false, handler: throttled, skipSuccessfulRequests: true };
   const ipLimiter = rateLimit({ ...limitOptions, limit: loginLimit });
   let checking = false;
@@ -90,18 +106,20 @@ export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = 
     if (checking) { res.set('Retry-After', '2'); return res.status(429).json({ error: 'too_many_attempts' }); }
     checking = true;
     let valid;
-    try { valid = await verifyPassword(password, config.passwordHash); }
+    const user = credentials();
+    try { valid = await verifyPassword(password, user.passwordHash); }
     finally { checking = false; }
     // Always perform the same password derivation, including unknown usernames.
-    if (!valid || !sameString(username, config.username)) {
+    if (!valid || !sameString(username, user.username)) {
       console.info('auth login_failed', req.ip); return res.status(401).json({ error: 'invalid_credentials' });
     }
     await regenerate(req);
-    req.session.authenticated = true; req.session.issuedAt = now(); req.session.lastActive = now(); req.session.csrf = token();
+    req.session.authenticated = true; req.session.issuedAt = now(); req.session.lastActive = now(); req.session.csrf = token(); req.session.epoch = user.sessionEpoch;
     await save(req); console.info('auth login_success'); res.json({ ok: true });
+    if (user.notify?.login) notify('login', 'Nuevo inicio de sesión en PokéVault', [`Se ha iniciado sesión el ${new Date(now()).toLocaleString('es-ES', { timeZone: 'Atlantic/Canary' })} (hora de Canarias).`, 'Si no has sido tú, cambia tu contraseña desde «Cuenta».']);
   });
   const authenticated = (req, res, next) => req.session.authenticated ? next() : res.status(401).json({ error: 'authentication_required' });
-  app.get('/auth/session', authenticated, (req, res) => res.json({ username: config.username, csrf: req.session.csrf, idleMs: config.idleMs, vault: !!vault }));
+  app.get('/auth/session', authenticated, (req, res) => res.json({ username: credentials().username, csrf: req.session.csrf, idleMs: config.idleMs, vault: !!vault, account: !!account }));
   app.post('/auth/activity', authenticated, csrf, async (req, res) => {
     req.session.lastActive = now(); await save(req); res.json({ ok: true });
   });
@@ -112,6 +130,7 @@ export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = 
     });
   });
   if (vault) app.use('/api/vault', vaultRouter({ vault, quotaBytes: vaultQuotaBytes, authenticated, csrf, onlyJSON }));
+  if (account) accountRoutes(app, { account, mailer, config, now, authenticated, csrf, onlyJSON, ipLimiter, notify, regenerate, save, token, publicDir, lock: { get: () => checking, set: v => { checking = v; } } });
   app.use((req, res, next) => {
     if (req.path.startsWith('/auth/')) return res.status(404).json({ error: 'not_found' });
     if (!req.session.authenticated) {
@@ -176,4 +195,95 @@ function vaultRouter({ vault, quotaBytes, authenticated, csrf, onlyJSON }) {
     res.status(error.status).json({ error: error.code, message: error.message });
   });
   return api;
+}
+
+// Account, password and email (docs/ACCOUNT_EMAIL.md). Public routes answer the
+// same way whatever the account state, so they reveal nothing about it.
+function accountRoutes(app, { account, mailer, config, now, authenticated, csrf, onlyJSON, ipLimiter, notify, regenerate, save, token, publicDir, lock }) {
+  const json = express.json({ limit: '4kb', strict: true });
+  const fail = (res, status, error, message) => res.status(status).json({ error, message });
+  const run = handler => (req, res, next) => handler(req, res).catch(next);
+  const link = (path, secret) => `${config.origin}${path}#${secret}`;
+  // Password checks share the login lock and limiter: one scrypt at a time.
+  async function checkPassword(password) {
+    if (typeof password !== 'string' || !password || [...password].length > 128) return false;
+    if (lock.get()) return null;
+    lock.set(true);
+    try { return await verifyPassword(password, account.get().passwordHash); } finally { lock.set(false); }
+  }
+  const view = user => ({ username: user.username, email: user.emailVerified ? user.email : null, pendingEmail: user.pendingEmail?.address || null,
+    notify: user.notify, smtp: !!mailer, passwordChangedAt: user.passwordChangedAt });
+
+  app.get(['/reset', '/confirm-email'], (req, res) => res.sendFile(`${publicDir}/recover.html`));
+  app.get('/api/account', authenticated, (_req, res) => res.json(view(account.get())));
+
+  app.post('/api/account/password', authenticated, csrf, onlyJSON, json, ipLimiter, run(async (req, res) => {
+    const { current, next } = req.body || {};
+    const valid = await checkPassword(current);
+    if (valid === null) return fail(res, 429, 'busy', 'Comprobación en curso. Inténtalo de nuevo.');
+    if (!valid) return fail(res, 401, 'invalid_password', 'La contraseña actual no es correcta.');
+    if (!validPassword(next)) return fail(res, 422, 'weak_password', 'La nueva contraseña debe tener entre 15 y 128 caracteres.');
+    if (next === current) return fail(res, 422, 'same_password', 'La nueva contraseña debe ser distinta de la actual.');
+    const passwordHash = await hashPassword(next);
+    const epoch = await account.update(user => { Object.assign(user, { passwordHash, passwordChangedAt: new Date(now()).toISOString(), reset: null }); user.sessionEpoch++; return user.sessionEpoch; });
+    // Every other session ends; this one is regenerated with the new epoch.
+    const csrfToken = token(); await regenerate(req);
+    Object.assign(req.session, { authenticated: true, issuedAt: now(), lastActive: now(), csrf: csrfToken, epoch }); await save(req);
+    notify('password_changed', 'Tu contraseña de PokéVault ha cambiado', ['Se ha cambiado la contraseña y se han cerrado las demás sesiones.', 'Si no has sido tú, usa «¿Olvidaste tu contraseña?» de inmediato.']);
+    console.info('account password_changed'); res.json({ ok: true, csrf: csrfToken });
+  }));
+
+  app.post('/api/account/email', authenticated, csrf, onlyJSON, json, ipLimiter, run(async (req, res) => {
+    const { password, email } = req.body || {};
+    if (!mailer) return fail(res, 503, 'smtp_disabled', 'Configura SMTP en el servidor para usar el correo.');
+    const valid = await checkPassword(password);
+    if (valid === null) return fail(res, 429, 'busy', 'Comprobación en curso. Inténtalo de nuevo.');
+    if (!valid) return fail(res, 401, 'invalid_password', 'La contraseña actual no es correcta.');
+    if (typeof email !== 'string' || email.length > 254 || !EMAIL.test(email)) return fail(res, 422, 'invalid_email', 'Escribe una dirección de correo válida.');
+    const secret = newToken(), before = account.get();
+    await account.update(user => { user.pendingEmail = { address: email, ...AccountStore.tokenRecord(secret, 24 * 3_600_000, now()) }; });
+    const sent = await mailer.send({ to: email, kind: 'email_confirm', ...message('Confirma tu correo de PokéVault', ['Pulsa el enlace para usar esta dirección en los avisos y la recuperación de tu cuenta. Caduca en 24 horas.', 'Si no lo has pedido tú, ignora este correo.'], { link: link('/confirm-email', secret), linkLabel: 'Confirmar correo' }) });
+    if (before.emailVerified && before.email !== email) notify('email_change', 'Se ha pedido cambiar el correo de PokéVault', [`Se ha solicitado usar ${email} como nuevo correo. Hasta que se confirme, sigue activo este.`, 'Si no has sido tú, cambia tu contraseña.']);
+    if (!sent) return fail(res, 502, 'smtp_failed', 'No se pudo enviar el correo de confirmación. Revisa la configuración SMTP.');
+    res.json({ ok: true });
+  }));
+
+  app.post('/auth/confirm-email', csrf, onlyJSON, json, ipLimiter, run(async (req, res) => {
+    const pending = account.get().pendingEmail, secret = req.body?.token;
+    if (!AccountStore.matches(pending, secret, now())) return fail(res, 400, 'invalid_token', 'El enlace no es válido o ha caducado.');
+    await account.update(user => { Object.assign(user, { email: pending.address, emailVerified: true, pendingEmail: null }); });
+    console.info('account email_verified'); res.json({ ok: true });
+  }));
+
+  app.post('/api/account/notify', authenticated, csrf, onlyJSON, json, run(async (req, res) => {
+    if (!validNotify(req.body)) return fail(res, 422, 'invalid_notify', 'Preferencias de avisos no válidas.');
+    const notifyPrefs = await account.update(user => { user.notify = { ...user.notify, ...req.body }; return user.notify; });
+    res.json({ ok: true, notify: notifyPrefs });
+  }));
+
+  // Always the same answer: whether an email exists or a link was sent is never revealed.
+  app.post('/auth/forgot', csrf, onlyJSON, json, run(async (_req, res) => {
+    const user = account.get(), at = now(), recent = (user.resetRequests || []).filter(t => at - t < 3_600_000);
+    const allowed = mailer && user.emailVerified && user.email && recent.length < 3 && !recent.some(t => at - t < 5 * 60_000);
+    if (allowed) {
+      const secret = newToken();
+      await account.update(next => { next.reset = AccountStore.tokenRecord(secret, 15 * 60_000, at); next.resetRequests = [...recent, at]; });
+      await mailer.send({ to: user.email, kind: 'reset', security: true, ...message('Restablecer tu contraseña de PokéVault', ['Alguien ha pedido restablecer la contraseña. El enlace caduca en 15 minutos y solo sirve una vez.', 'Si no has sido tú, ignora este correo: tu contraseña no cambia.'], { link: link('/reset', secret), linkLabel: 'Elegir una contraseña nueva' }) });
+    }
+    console.info('account reset_requested'); res.json({ ok: true });
+  }));
+
+  app.post('/auth/reset', csrf, onlyJSON, json, ipLimiter, run(async (req, res) => {
+    const { token: secret, password } = req.body || {};
+    if (!AccountStore.matches(account.get().reset, secret, now())) return fail(res, 400, 'invalid_token', 'El enlace no es válido, ya se usó o ha caducado. Pide otro.');
+    if (!validPassword(password)) return fail(res, 422, 'weak_password', 'La nueva contraseña debe tener entre 15 y 128 caracteres.');
+    const passwordHash = await hashPassword(password);
+    const changed = await account.update(user => {
+      if (!AccountStore.matches(user.reset, secret, now())) return false; // used concurrently
+      Object.assign(user, { passwordHash, passwordChangedAt: new Date(now()).toISOString(), reset: null }); user.sessionEpoch++; return true;
+    });
+    if (!changed) return fail(res, 400, 'invalid_token', 'El enlace ya se usó. Pide otro.');
+    notify('password_reset', 'Tu contraseña de PokéVault se ha restablecido', ['Se ha usado el enlace de recuperación y se han cerrado todas las sesiones.', 'Si no has sido tú, vuelve a pedir un enlace y revisa la seguridad de tu correo.']);
+    console.info('account password_reset'); res.json({ ok: true });
+  }));
 }

@@ -14,6 +14,12 @@ services:
       POKEVAULT_SESSION_SECRET: "${POKEVAULT_SESSION_SECRET:?Create your credentials first}"
       # Bank encryption key: keep a copy outside the server. Losing it loses the bank.
       POKEVAULT_DATA_KEY: "${POKEVAULT_DATA_KEY:?Create your credentials first}"
+      # Optional email (docs/ACCOUNT_EMAIL.md). Gmail: smtp.gmail.com, 465 and an app password.
+      POKEVAULT_SMTP_HOST: "${POKEVAULT_SMTP_HOST:-}"
+      POKEVAULT_SMTP_PORT: "${POKEVAULT_SMTP_PORT:-465}"
+      POKEVAULT_SMTP_USER: "${POKEVAULT_SMTP_USER:-}"
+      POKEVAULT_SMTP_PASSWORD: "${POKEVAULT_SMTP_PASSWORD:-}"
+      POKEVAULT_SMTP_FROM: "${POKEVAULT_SMTP_FROM:-}"
       POKEVAULT_ORIGIN: "https://${POKEVAULT_DOMAIN:?Set your domain without https://}"
       # Only Caddy can reach this private network; the application has no host port.
       POKEVAULT_TRUST_PROXY: "uniquelocal"

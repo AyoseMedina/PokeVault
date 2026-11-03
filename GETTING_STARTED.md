@@ -298,6 +298,30 @@ Details: [docs/SERVER_VAULT.md](docs/SERVER_VAULT.md).
   with the same volume, then set the new value as `POKEVAULT_DATA_KEY`.
 - Export a `.pvault` from time to time as a copy outside the server.
 
+## Account and email (Docker)
+
+**Account** (side menu) confirms your email, changes the password and selects
+notifications. Password and email are stored encrypted on the volume
+(`/data/account.enc`): **after the first start, the Portainer
+`POKEVAULT_PASSWORD_HASH` is no longer used**. Details: [docs/ACCOUNT_EMAIL.md](docs/ACCOUNT_EMAIL.md).
+
+Gmail (optional; without it everything works except notifications and recovery):
+
+1. In your Google account enable **2-Step Verification** and create an **app password**.
+2. In Portainer set `POKEVAULT_SMTP_HOST=smtp.gmail.com`, `POKEVAULT_SMTP_PORT=465`,
+   `POKEVAULT_SMTP_USER=you@gmail.com`, `POKEVAULT_SMTP_PASSWORD=<app password>` and
+   `POKEVAULT_SMTP_FROM=PokéVault <you@gmail.com>`. TLS only (465 or 587).
+3. Redeploy, open **Account**, enter your email and follow the confirmation link.
+
+- **Forgot the password?** On the sign-in page, "Need to recover access?" sends a
+  single-use, 15-minute link to the verified email and closes every session.
+- **No email access:** create a new hash with `create-credentials.mjs`, set it as
+  `POKEVAULT_PASSWORD_HASH`, **stop the app**, run `node server/vault-admin.mjs reset-account`
+  with the same volume and variables, then start it again.
+- Security notices are always sent. Weekly digest, anniversaries, moves and the
+  backup reminder are opt-in; those with Pokémon send species, nickname, level and
+  game to your mail provider.
+
 ## Move your bank (local mode without sign-in)
 
 With `iniciar.py`, saves are kept in browser storage. Your local bank is independent of the bank

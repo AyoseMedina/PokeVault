@@ -13,7 +13,7 @@ function signIn(){
 }
 document.addEventListener('pokevault-idle',()=>{if(expired)setTimeout(signIn,0);});
 if (channel) channel.onmessage = event => { if (event.data === 'logout') signIn(); };
-let csrf = '', serverVault = false, activityPending = false, lastPing = 0, checking = false, exiting = false;
+let csrf = '', serverVault = false, serverAccount = false, activityPending = false, lastPing = 0, checking = false, exiting = false;
 
 async function checkSession() {
   if (checking || exiting || expired) return;
@@ -22,7 +22,7 @@ async function checkSession() {
     const response = await fetch('/auth/session', { cache: 'no-store', credentials: 'same-origin' });
     if (response.status === 401) { signIn(); return false; }
     if (!response.ok) throw new Error('No se pudo comprobar la sesión.');
-    const data = await response.json(); csrf = data.csrf; serverVault = data.vault === true;
+    const data = await response.json(); csrf = data.csrf; serverVault = data.vault === true; serverAccount = data.account === true;
     return true;
   } finally { checking = false; }
 }
@@ -53,7 +53,7 @@ function mountLogout() {
 try {
   if (await checkSession()) {
     // The bank lives on the server (docs/SERVER_VAULT.md); app.js reads this before opening storage.
-    if (serverVault) globalThis.pokevaultServer = Object.freeze({ csrf: () => csrf, unauthorized: signIn });
+    if (serverVault) globalThis.pokevaultServer = Object.freeze({ csrf: () => csrf, setCsrf: value => { if (typeof value === 'string' && value) csrf = value; }, unauthorized: signIn, account: serverAccount });
     await import('/app.js');
     new MutationObserver(mountLogout).observe(document.getElementById('app'), { childList:true, subtree:true });
     mountLogout();

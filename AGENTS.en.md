@@ -93,7 +93,7 @@ public registration or an unauthenticated Docker deployment mode. Restrict
 development HTTP to the host; require HTTPS elsewhere. Logging out must not
 delete or reinitialize IndexedDB.
 
-The user authorized (2026-11-03) the email-enabled account described in
+The user authorized (2026-11-03), and it is implemented, the email-enabled account described in
 `docs/ACCOUNT_EMAIL.md`: account data on a persistent volume, TLS-only SMTP,
 password change and link-based recovery, and notifications that may include a
 minimal Pokémon summary sent by the browser. The server emails that summary and

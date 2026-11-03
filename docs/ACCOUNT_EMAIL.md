@@ -2,8 +2,17 @@
 
 ## Español
 
-**Estado:** especificación autorizada por el usuario (2026-11-03), pendiente de
-implementar. Política: `pokevault-account-v1`. Implementar **después** del modo
+**Estado:** autorizado e implementado (2026-11-03). Código: `server/account-store.js`,
+`server/mailer.js`, `server/notifications.js`, rutas en `server/app.js`,
+`server/public/recover.*` y la página «Cuenta» de `dist/app.js`. Pruebas:
+`server/tests/account.test.js` y `tests/browser-account.mjs`.
+
+**Diferencias con el borrador:** la cuenta va **cifrada** (`/data/account.enc`,
+misma clave que el banco). El modo de emergencia es `vault-admin.mjs reset-account`.
+Los mensajes de Pokémon se generan en el servidor desde el banco cifrado
+(`SERVER_VAULT.md`), sin tener el navegador abierto; el endpoint
+`/notify/message` del navegador no hace falta. Los aniversarios usan la fecha
+de importación de cada partida. Política: `pokevault-account-v1`. Implementar **después** del modo
 mover (`docs/MOVE_TRANSFER.md`).
 
 Decisiones del usuario:

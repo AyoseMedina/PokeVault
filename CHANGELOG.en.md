@@ -5,6 +5,17 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Account and email (not deployed)
+
+- "Account" page: email with link confirmation, password change (closes other
+  sessions) and email notifications. Data encrypted in `/data/account.enc`.
+- Recovery with a single-use link (15 min, token in the fragment, identical
+  answers, 1 per 5 min and 3 per hour) and emergency `vault-admin.mjs reset-account`.
+- TLS-only SMTP (465/587), pinned `nodemailer` 10.1.7, rate limits, escaped
+  templates and no content logging. Security notices always; weekly digest,
+  anniversaries, moves and backup reminders are opt-in and built server-side.
+- Server and Chromium tests (confirmation, preferences, change and recovery).
+
 ## 2026-11-03 · Shiny and animated sprites (not deployed)
 
 - Shiny Pokémon use their shiny sprite (bank, detail, selection and move review).
