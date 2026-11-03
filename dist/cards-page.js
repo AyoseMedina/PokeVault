@@ -3,6 +3,8 @@
 // titleBlock, importButton, render, showModal, showPokemon, dexEntry, animationMode, $, $$ }.
 import { cardModel } from './cards.js';
 import { cardFront, cardBack } from './cards-view.js';
+import { packStrip, openPack } from './packs-view.js';
+import { ensurePacks } from './packs.js';
 
 const PER_PAGE = 18;
 const view = { scope: 'all', game: 'all', shiny: false, sort: 'box', page: 0 };
@@ -27,7 +29,7 @@ export function renderCardsPage(ctx) {
   view.page = Math.min(view.page, pages - 1);
   const games = [...new Set([...ctx.records.values()].map(p => p.game))];
   const counts = list.reduce((c, { m }) => (c[m.rarity.key] = (c[m.rarity.key] || 0) + 1, c), {});
-  return heading + `<div class="panel dex-controls">
+  return heading + packStrip(ctx) + `<div class="panel dex-controls">
     <div class="field"><label for="cards-scope">Mostrar</label><select id="cards-scope"><option value="all">Todo el banco</option><option value="box" ${view.scope === 'box' ? 'selected' : ''}>Caja actual: ${esc(ctx.currentBox()?.name || '')}</option></select></div>
     <div class="field"><label for="cards-game">Juego</label><select id="cards-game"><option value="all">Todos</option>${games.map(g => `<option value="${g}" ${view.game === g ? 'selected' : ''}>${esc(GAMES[g].name)}</option>`).join('')}</select></div>
     <div class="field"><label for="cards-sort">Orden</label><select id="cards-sort">${[['box', 'Orden del banco'], ['rarity', 'Rareza'], ['level', 'Mayor nivel'], ['hp', 'Más PS'], ['dex', 'Pokédex']].map(([v, l]) => `<option value="${v}" ${view.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
@@ -64,6 +66,9 @@ function showCard(ctx, key) {
 
 export function bindCardsPage(ctx) {
   const { $, $$ } = ctx;
+  // First visit: the current collection arrives as welcome packs (memory only in the demo).
+  if (!ctx.getState().packs && ctx.records.size) ctx.commit('Preparar sobres de cartas', next => ensurePacks(next, ctx.records, { at: new Date().toISOString(), uid: ctx.uid }), { snapshot: false }).then(() => ctx.render()).catch(e => ctx.toast(e.message));
+  $$('[data-pack]').forEach(b => b.onclick = () => openPack(ctx, b.dataset.pack));
   if (!$('#cards-scope')) return;
   $('#cards-scope').onchange = e => { view.scope = e.target.value; view.page = 0; ctx.render(); };
   $('#cards-game').onchange = e => { view.game = e.target.value; view.page = 0; ctx.render(); };

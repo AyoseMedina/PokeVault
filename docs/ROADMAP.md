@@ -8,7 +8,7 @@ para implementar**: cada una necesita su documento antes de empezar.
 Orden previsto: modo mover (`MOVE_TRANSFER.md`) → cuenta y correo
 (`ACCOUNT_EMAIL.md`) → ideas de esta lista.
 
-### Vista de cartas coleccionables
+### Vista de cartas coleccionables — implementada (2026-11-03, [CARDS.md](CARDS.md))
 
 - Ver el banco como cartas: sprite, especie y mote, tipos, nivel, juego de
   origen, entrenador, variocolor, favorito y nota.

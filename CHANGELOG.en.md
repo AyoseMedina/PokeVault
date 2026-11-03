@@ -5,6 +5,16 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Cards and packs (not deployed)
+
+- "Cartas" page: every bank Pokémon as an original-design card with real HP,
+  generation-aware stage, move power and type chart, rarity and holo shiny cards.
+  The back shows IV/DV, training and Pokédex text.
+- Packs of up to 10 cards for newly arrived Pokémon (including trade evolutions)
+  and welcome packs; tear-and-reveal animation, rarest last.
+- Pinned PokéAPI data (`scripts/build-card-data.mjs`) and tests for formulas,
+  generations and packs.
+
 ## 2026-11-03 · R36S ⇄ Wii converter (not deployed)
 
 - "Convertir R36S ⇄ Wii" in Saves: `.srm` (RetroArch) ⇄ `.sav` (Visual Boy Advance

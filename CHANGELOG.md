@@ -5,6 +5,18 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Cartas y sobres (sin despliegue)
+
+- Página «Cartas»: cada Pokémon del banco como carta de diseño propio, con PS
+  reales, fase según la generación, ataques con su potencia de esa generación,
+  debilidad/resistencia con su tabla de tipos, rareza y brillo holográfico en
+  variocolor. Reverso con DV/IV, entrenamiento y Pokédex.
+- Sobres de hasta 10 cartas al recibir Pokémon nuevos (también tras una
+  evolución por intercambio) y sobres de bienvenida; animación de abrir y girar
+  cartas, con la más rara al final.
+- Datos de PokéAPI fijados (`scripts/build-card-data.mjs`) y pruebas de cálculo,
+  generaciones y sobres.
+
 ## 2026-11-03 · Conversor R36S ⇄ Wii (sin despliegue)
 
 - «Convertir R36S ⇄ Wii» en Mis partidas: `.srm` (RetroArch) ⇄ `.sav` (Visual Boy
