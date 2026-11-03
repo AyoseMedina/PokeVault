@@ -5,6 +5,23 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Interfaz completa para móviles
+
+- Añadido menú móvil con las seis secciones, control del foco y fondo inactivo
+  mientras una ventana está abierta. Se conserva la navegación de escritorio.
+- Ampliados los controles táctiles y campos de entrada; restauradas en móvil las
+  opciones de renombrar cajas y cambiar entre lista y cuadrícula. La selección
+  permite mover Pokémon sin arrastrar y mantiene visibles sus acciones al bajar.
+- Adaptados login, banco, partidas, Pokédex, fichas, cajas originales, revisión,
+  respaldos y guía; textos legibles, tablas ajustadas y ventanas desplazables
+  con cierre accesible, áreas seguras y altura dinámica.
+- Comprobados los seis apartados entre 320 y 850 píxeles, orientación horizontal,
+  pantalla de poca altura y escritorio en Chromium aislado. Probados importación,
+  selección táctil, cajas, notas, prevalidación, revisión, respaldo y descarga ZIP.
+  Superadas 89 pruebas de datos/lógica y 14 de acceso.
+- No se han probado teléfonos físicos ni el teclado virtual de iOS/Android.
+  Se conservan los formatos, las validaciones y los originales de las partidas.
+
 ## 2026-11-03 · Pokédex, Cristal → GBA y tema Pokémon
 
 - Añadida Pokédex de solo lectura por partida, con contadores nacionales reales

@@ -30,6 +30,8 @@ El código es público y la aplicación se puede alojar en tu propio equipo o se
 
 La aplicación y el login usan una paleta de Poké Ball: rojo, blanco y negro.
 
+La interfaz se adapta a móviles y tabletas: menú con todas las secciones, controles táctiles, cajas, Pokédex y revisión/exportación a todo el ancho. Para mover Pokémon sin arrastrar, marca su selector y pulsa **Mover de caja**.
+
 ## Inicio rápido
 
 ```bash

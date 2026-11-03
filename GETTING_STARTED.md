@@ -11,6 +11,12 @@ cd PokeVault
 
 **For sign-in, use [Docker or Portainer](#docker-and-portainer-from-github).**
 
+## Phones and tablets
+
+Open your deployment URL and use **Menú** to reach all six sections. Import files with your device’s file picker and save downloads using **Descargar archivo** (Download file). To organize boxes, select Pokémon and tap **Mover de caja** (Move to box); dragging is optional.
+
+Each device’s browser stores its own bank. To move it from desktop to phone, export a `.pvault` in **Copias de seguridad** (Backups), then restore it on the phone. Sign-in does not synchronize banks. `localhost` only works on the same computer; on your phone, use the reachable URL of your Nginx deployment.
+
 ## Local development without sign-in
 
 The Python server preserves the original static mode without authenticated

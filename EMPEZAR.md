@@ -11,6 +11,12 @@ cd PokeVault
 
 **Para el login, utiliza [Docker o Portainer](#docker-y-portainer-desde-github).**
 
+## Uso en móvil o tableta
+
+Abre la URL de tu despliegue y utiliza **Menú** para acceder a las seis secciones. Puedes importar archivos desde el selector del dispositivo y guardar las descargas desde **Descargar archivo**. Para organizar cajas, marca los Pokémon y pulsa **Mover de caja**; no necesitas arrastrarlos.
+
+El banco se guarda en el navegador de cada dispositivo. Para llevarlo del ordenador al móvil, exporta un `.pvault` en **Copias de seguridad** y restáuralo en el móvil. El login no sincroniza los bancos. `localhost` solo funciona en el propio equipo; en el teléfono utiliza la URL accesible de tu despliegue con Nginx.
+
 ## Desarrollo local sin login
 
 Este servidor Python conserva el modo estático original y no incluye acceso

@@ -5,6 +5,23 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Complete mobile interface
+
+- Added a mobile menu with all six sections, focus handling and an inactive
+  background while dialogs are open. Desktop navigation is retained.
+- Enlarged touch controls and inputs; restored mobile access to renaming boxes
+  and switching grid/list views. Selection supports moving Pokémon without
+  dragging and keeps its actions visible while scrolling.
+- Adapted sign-in, bank, saves, Pokédex, details, original boxes, reviews, backups
+  and guide with readable text, wrapping tables, scrollable dialogs, reachable
+  close buttons, safe areas and dynamic viewport height.
+- Checked all six sections at widths from 320 to 850 pixels, landscape,
+  short screens and desktop in isolated Chromium. Exercised imports, touch
+  selection, boxes, notes, prevalidation, review, backup and ZIP download.
+  All 89 data/logic tests and 14 access tests passed.
+- Physical phones and the iOS/Android virtual keyboard were not tested.
+  Save formats, validation and original save data are preserved.
+
 ## 2026-11-03 · Pokédex, Crystal → GBA and Pokémon theme
 
 - Added a read-only per-save Pokédex with actual national seen/caught counts,

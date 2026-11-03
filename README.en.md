@@ -30,6 +30,8 @@ The code is public and you can host the application on your own computer or serv
 
 The interface and sign-in use a red, white and charcoal Poké Ball palette.
 
+The interface adapts to phones and tablets: a menu with every section, touch controls, boxes, Pokédex and full-width review/export screens. To move Pokémon without dragging, tap their selection buttons and choose **Mover de caja** (Move to box).
+
 ## Quick start
 
 ```bash
