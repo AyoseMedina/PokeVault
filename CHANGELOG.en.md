@@ -5,6 +5,17 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Move phase 1 (not deployed)
+
+- Verified PC removal in generations I–V, GB compaction and active boxes,
+  native empty GBA/DS slots, range masks, checksums and intact DSV footers.
+- Multi-save ZIP with exact filenames/extensions and before/after hashes.
+  Same-save transfers and output filename collisions are blocked.
+- Persistent consumed-hash ledger, reimport protection, schema-1 compatible
+  backups and confirmed export cancellation recorded in history.
+- 108 unit tests passed; Chromium persistence/recovery/access regressions passed.
+  No physical console or emulator gameplay tests.
+
 ## 2026-11-03 · Bank protection, recovery and access
 
 - Isolated demo from persisted data: exiting reloads the bank; demo imports and

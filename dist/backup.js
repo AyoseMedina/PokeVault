@@ -1,4 +1,5 @@
 import { GAMES, parseSave, sha256 } from './core.js';
+import { consumedLedger } from './consumed.js';
 export const LANGUAGES=['es','en','fr','it','de'];
 const fail=message=>{throw new Error(message);};
 const time=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
@@ -21,7 +22,7 @@ export async function decodeBackup(backup,existing=[]) {
     const bytes=await load(s);
     try {parseSave(bytes,s.game,language).records.forEach(r=>keys.add(`${s.id}/${r.location}/${r.box}/${r.slot}`));}
     catch {if(backup.schema===1)throw new Error('Guardado no legible en respaldo antiguo. Conserva el archivo original.');unreadable.add(s.id);}
-    saves.push({id:s.id,game:s.game,language,at,name:String(s.name||'partida.sav').slice(0,120),hash:s.hash,bytes});
+    saves.push({id:s.id,game:s.game,language,at,name:String(s.name||'partida.sav'),hash:s.hash,bytes,...(s.consumedBy?{consumedBy:s.consumedBy,consumedAt:s.consumedAt}:{})});
   }
   if(existing.length+new Set(saves.filter(s=>!existing.some(e=>e.hash===s.hash)).map(s=>s.hash)).size>100)fail('La fusión superaría las 100 partidas. Retira una versión antigua tras respaldarla.');
   const keyValid=k=>keys.has(k)||(typeof k==='string'&&/^([\w-]+)\/(pc|party)\/-?\d+\/\d+$/.test(k)&&unreadable.has(k.split('/')[0]));
@@ -52,5 +53,7 @@ export async function decodeBackup(backup,existing=[]) {
     snapshots.push({id:snap.id,at:snap.at,reason:snap.reason,...metadata(snap),plans:structuredClone(snap.plans||[])});
   }
   if(snapshots.length>25)fail('Demasiados puntos de restauración.');
-  return {saves,...meta,backups,plans:structuredClone(plans),snapshots,unreadable};
+  const consumed=consumedLedger({saves,consumed:backup.consumed});
+  for(const save of saves)if(consumed[save.hash])Object.assign(save,consumed[save.hash]);
+  return {saves,...meta,backups,plans:structuredClone(plans),snapshots,unreadable,consumed};
 }

@@ -1,4 +1,5 @@
 // IndexedDB persistence. Save bytes are immutable and stored once per SHA-256.
+import { consumedLedger } from './consumed.js';
 export function validateState(value) {
   if (!value || value.schema !== 1) throw new Error('Esquema de banco desconocido. Escritura bloqueada; conserva la recuperación.');
   if (value.revision !== undefined && (!Number.isSafeInteger(value.revision) || value.revision < 0)) throw new Error('Revisión de banco no válida.');
@@ -10,6 +11,7 @@ export function validateState(value) {
     ids.add(save.id);
   }
   for(const box of value.boxes) if(!box || typeof box.id!=='string' || typeof box.name!=='string' || !Array.isArray(box.slots) || box.slots.length!==30) throw new Error('Caja no compatible.');
+  consumedLedger(value);
   return value;
 }
 export function cloneVault(value) {

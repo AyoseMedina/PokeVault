@@ -56,8 +56,12 @@ Archivos principales:
   resultado final debe coincidir con los bytes revisados.
 - No eliminar objetos, MO, huevos, eventos o formas especiales silenciosamente.
   Mantener los bloqueos conservadores y las instrucciones manuales claras.
-- Distinguir una copia de datos de un intercambio real: no borrar el origen ni
-  activar evoluciones por intercambio como efecto implícito.
+- El usuario autorizó expresamente (2026-11-03) que las transferencias **muevan**
+  el Pokémon en lugar de copiarlo, con evolución por intercambio (también con
+  objeto), objetos equipados en la misma generación, registro en la Pokédex del
+  destino, nombres y extensiones de archivo exactos y bloqueo del clonado. Sigue
+  `docs/MOVE_TRANSFER.md`. Fuera de esa política no se borra el origen ni se
+  activan evoluciones, y nunca como efecto implícito o sin mostrarlo en la revisión.
 - No afirmar legalidad competitiva por haber superado checksums.
 
 ## Desarrollo y comprobaciones
@@ -82,3 +86,11 @@ ejecuta `npm run test:auth`, además de `npm test`. No añadas credenciales por
 defecto, registro público ni un modo sin autenticación al despliegue Docker.
 Mantén el HTTP de desarrollo limitado al host; fuera de él requiere HTTPS.
 Cerrar sesión no debe borrar ni reinicializar IndexedDB.
+
+El usuario autorizó (2026-11-03) la cuenta con correo según
+`docs/ACCOUNT_EMAIL.md`: datos de la cuenta en un volumen persistente, SMTP con
+TLS, cambio y recuperación de contraseña por enlace, y avisos que pueden incluir
+un resumen mínimo de Pokémon enviado desde el navegador, que el servidor envía
+por correo y descarta. El servidor sigue sin recibir ni guardar partidas y no
+almacena datos de Pokémon. Las ideas de `docs/ROADMAP.md` no están autorizadas
+hasta que tengan su propia especificación.

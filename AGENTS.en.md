@@ -55,8 +55,12 @@ Main files:
   Final output must match the reviewed bytes.
 - Never silently remove items, HMs, eggs, events or special forms. Preserve
   conservative blocks and clear manual instructions.
-- Distinguish a data copy from an actual trade: do not delete the source or
-  implicitly trigger trade evolutions.
+- The user explicitly authorized (2026-11-03) transfers that **move** Pokémon
+  instead of copying them, with trade evolution (including item-based ones),
+  same-generation held items, destination Pokédex registration, exact file names
+  and extensions, and clone prevention. Follow `docs/MOVE_TRANSFER.md`. Outside that policy, do
+  not delete the source or trigger evolutions, and never do so implicitly or
+  without showing it in the review.
 - Do not claim competitive legality merely because checksums pass.
 
 ## Development and verification
@@ -81,3 +85,11 @@ run `npm run test:auth` as well as `npm test`. Do not add default credentials,
 public registration or an unauthenticated Docker deployment mode. Restrict
 development HTTP to the host; require HTTPS elsewhere. Logging out must not
 delete or reinitialize IndexedDB.
+
+The user authorized (2026-11-03) the email-enabled account described in
+`docs/ACCOUNT_EMAIL.md`: account data on a persistent volume, TLS-only SMTP,
+password change and link-based recovery, and notifications that may include a
+minimal Pokémon summary sent by the browser. The server emails that summary and
+discards it. The server still never receives or stores saves and does not store
+Pokémon data. Ideas in `docs/ROADMAP.md` are not authorized until they have their
+own specification.

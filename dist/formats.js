@@ -95,7 +95,7 @@ export function parseNDS(input,game,levelFrom){
   const add=(raw,loc)=>{const p=parsePK45(raw,config.generation,loc,levelFrom);if(p)records.push(p);};
   if(config.generation===4){
     const g=selectG4Block(b,0,config.gsize,config.footer,'Datos generales'),s=selectG4Block(b,config.sstart,config.ssize,config.footer,'Cajas del PC');
-    writeInfo={kind:'nds4',generalBase:g.base,storageBase:s.base,storageSize:config.ssize,footer:config.footer,boxStart:config.boxStart,stride:config.stride,hgss:config.family==='hgss'};
+    writeInfo={kind:'nds4',generalBase:g.base,generalSize:config.gsize,storageBase:s.base,storageSize:config.ssize,footer:config.footer,boxStart:config.boxStart,stride:config.stride,hgss:config.family==='hgss'};
     trainer=decodeDS(g.data.subarray(config.trainer,config.trainer+16),4);tid=u16(g.data,config.trainer+16);
     const current=u32(s.data,config.family==='hgss'?0x12000:0);require(current<18,'Índice de caja DS no válido.');
     for(let box=0;box<18;box++){

@@ -5,6 +5,17 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Movimiento, fase 1 (sin despliegue)
+
+- Retirada verificada del PC en I–V: compactación GB y caja activa, casillas
+  vacías nativas GBA/DS, máscaras de escritura, checksums y pie DSV intacto.
+- ZIP con todos los resultados en copiar-a-la-SD, nombres y extensiones exactos,
+  originales y hashes antes/después. Bloqueo de origen igual a destino y colisiones.
+- Versiones consumidas con registro por hash, bloqueo de reimportación, respaldo
+  compatible con schema 1 y anulación confirmada registrada en historial.
+- Pruebas sintéticas de las cinco generaciones y regresiones Chromium de
+  persistencia, recuperación y acceso. Sin prueba en consola o emulador real.
+
 ## 2026-11-03 · Protección del banco, recuperación y acceso
 
 - Aislada la demo del banco persistido: salida mediante relectura, importación y
