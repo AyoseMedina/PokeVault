@@ -5,6 +5,16 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Movimiento, fase 2 (sin despliegue)
+
+- Evoluciones por intercambio según ruta, nombres exactos, habilidad de la
+  evolución y bloqueo por aprendizaje al nivel actual. Piedra Eterna respetada.
+- Pokédex del destino con copias y metadatos de formas, género e idioma;
+  verificación de las demás especies y de todos los Pokémon anteriores.
+- Tablas reproducibles y fuentes primarias documentadas. Las formas no base
+  con registro propio en V quedan bloqueadas por una discrepancia no resuelta
+  con código nativo; se explica en MOVE_IMPLEMENTATION.md.
+
 ## 2026-11-03 · Movimiento, fase 1 (sin despliegue)
 
 - Retirada verificada del PC en I–V: compactación GB y caja activa, casillas

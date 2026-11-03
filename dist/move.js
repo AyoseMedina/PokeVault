@@ -1,6 +1,9 @@
 import { GAMES,parseSave,buildTransfer,bytesEqual,checksum32,put16,put32 } from './core.js';
 import { encryptPK45,crc16CCITT } from './formats.js';
 import { FORMAT_DATA as F } from './formats-data.js';
+import {evolveArrival,setHeldItem,everstone,tradeFriendship} from './move-entity.js';
+import {registerDex,verifyDex} from './move-dex.js';
+import {entityIdentity} from './transfer.js';
 export const MOVE_POLICY='pokevault-move-v1';
 const check=(ok,message)=>{if(!ok)throw new Error(message);};
 const u32=(b,o)=>new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(o,true);
@@ -24,6 +27,14 @@ export function saveWriter(save){
     else if(parsed.generation===5){patch(0x400+box*4096+slot*136,data);blocks.add(box+1);}
     else throw new Error('Las listas GB se escriben con compactación.');
   }
+  function entity(p){
+    if(parsed.generation>=3){slot(p.box,p.slot,p.raw);return;}
+    const yellow=parsed.generation===1,size=yellow?33:32,current=bytes[yellow?0x284C:0x2700]&(yellow?127:255),bank=(p.box<(yellow?6:7)?0x4000:0x6000)+(p.box%(yellow?6:7))*(yellow?0x462:0x450),offsets=[];
+    if(!yellow||(bytes[0x284C]&128))offsets.push(bank);
+    if(p.box===current)offsets.push(yellow?0x30C0:0x2D10);
+    for(const o of offsets){patch(o+1+p.slot,Uint8Array.of(p.raw[0]));patch(o+22+p.slot*size,p.raw);patch(o+22+20*size+220+p.slot*11,p.nicknameRaw);}
+    boxes.add(p.box);
+  }
   function finish(){
     if(parsed.generation===1){for(const bank of [0x4000,0x6000])if([...boxes].some(b=>(b<6?0x4000:0x6000)===bank)&&(bytes[0x284C]&128)){
       const complement=b=>(~b.reduce((a,n)=>(a+n)&255,0))&255;
@@ -36,7 +47,7 @@ export function saveWriter(save){
     for(let i=0;i<bytes.length;i++)check(bytes[i]===save.bytes[i]||allowed[i],'Cambio fuera de rangos autorizados.');
     return {bytes,checked:parseSave(bytes,save.game,save.language),allowed};
   }
-  return {parsed,bytes,patch,word,dword,gba,slot,boxes,blocks,sectors,markGeneral:()=>{general=true;},finish};
+  return {parsed,bytes,patch,word,dword,gba,slot,entity,boxes,blocks,sectors,markGeneral:()=>{general=true;},finish};
 }
 export function removeSelected(save,selected){
   check(!save.consumedBy,'Versión consumida: importa el resultado nuevo.');const w=saveWriter(save),before=w.parsed,keys=new Set();
@@ -61,7 +72,29 @@ export function buildMove(destination,selected,targetBox,sources,options={}){
   const sourceMap=new Map(sources.map(s=>[s.id,s])),groups=new Map();
   for(const p of selected){const s=sourceMap.get(p.saveId);check(s&&!s.demo&&!s.consumedBy,'Origen consumido, de demo o no disponible.');check(s.id!==destination.id&&s.hash!==destination.hash&&!bytesEqual(s.bytes,destination.bytes),'Origen y destino son la misma partida. Usa el juego para organizarla.');if(!groups.has(s.id))groups.set(s.id,[]);groups.get(s.id).push(p);}
   const all=[destination,...[...groups.keys()].map(id=>sourceMap.get(id))],paths=all.map(resultPath),canonical=paths.map(p=>p.normalize('NFC').toLowerCase());check(new Set(canonical).size===paths.length,'Dos archivos de la misma carpeta comparten nombre. No se renombrarán.');
-  const result=buildTransfer(destination,selected,targetBox,options),outputs=[{save:destination,bytes:result.bytes,role:'destination'}];
+  // Phase 2 permits the Everstone explicitly; other held-item routes are
+  // validated by the item policy in phase 3. The copy writer sees isolated
+  // item-free entities, never mutated original records.
+  const targetGeneration=GAMES[destination.game].generation;
+  const inputs=selected.map(p=>p.heldItem===everstone(p.generation)&&p.heldItem?setHeldItem(p,0):p);
+  const result=buildTransfer(destination,inputs,targetBox,options),w=saveWriter({...destination,bytes:result.bytes}),dexSpecies=[],notes=[];
+  const identities=new Set(parseSave(destination.bytes,destination.game,destination.language).records.map(entityIdentity));
+  for(let index=0;index<result.placements.length;index++){
+    const placement=result.placements[index],source=selected[index];placement.pokemon=source;
+    let received=result.checked.records.find(p=>p.location==='pc'&&p.box===placement.box&&p.slot===placement.slot);
+    if(inputs[index]!==source){check(source.generation===targetGeneration||(source.generation===2&&targetGeneration===3),'Objeto entre generaciones pendiente de validar.');received=setHeldItem(received,everstone(targetGeneration));}
+    const friendship=tradeFriendship(received,source.generation);received=friendship.pokemon;notes.push(...friendship.notes);
+    registerDex(w,received);dexSpecies.push(received.species);
+    const evolved=evolveArrival(received,source.generation,destination.game),after=evolved.pokemon;
+    check(!identities.has(entityIdentity(after)),'El Pokémon evolucionado ya existe en el destino.');identities.add(entityIdentity(after));
+    if(evolved.evolution){registerDex(w,after);dexSpecies.push(after.species);}
+    w.entity(after);placement.raw=after.raw;placement.resultSpecies=after.species;placement.evolution=evolved.evolution||null;placement.conversion=[...(placement.conversion||[]),...evolved.notes];notes.push(...evolved.notes);
+  }
+  const finished=w.finish();verifyDex(parseSave(destination.bytes,destination.game,destination.language).pokedex,finished.checked.pokedex,dexSpecies);
+  for(const p of parseSave(destination.bytes,destination.game,destination.language).records){check(equalEntity(p,finished.checked.records.find(r=>loc(r)===loc(p))),'Otro Pokémon del destino cambió.');}
+  for(const p of result.placements){check(bytesEqual(p.raw,finished.checked.records.find(r=>r.location==='pc'&&r.box===p.box&&r.slot===p.slot)?.raw),'El Pokémon recibido difiere de lo revisado.');}
+  result.bytes=finished.bytes;result.checked=finished.checked;
+  const outputs=[{save:destination,bytes:result.bytes,role:'destination'}];
   for(const [id,picks] of groups){const save=sourceMap.get(id);outputs.push({save,bytes:removeSelected(save,picks).bytes,role:'source'});}
-  return {...result,policy:MOVE_POLICY,outputs,notes:[...(result.notes||[]).filter(n=>!n.startsWith('Copia')),'Movimiento: se retirarán los Pokémon seleccionados de los nuevos guardados de origen. Instala todos los resultados o ninguno.']};
+  return {...result,policy:MOVE_POLICY,outputs,notes:[...(result.notes||[]).filter(n=>!n.startsWith('Copia')).map(n=>n.replace('La Pokédex del destino no se modifica.','')),...notes,'Pokédex del destino: especies recibidas y evolucionadas registradas como vistas/capturadas.','Movimiento: se retirarán los Pokémon seleccionados de los nuevos guardados de origen. Instala todos los resultados o ninguno.']};
 }

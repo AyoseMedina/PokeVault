@@ -5,6 +5,15 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Move phase 2 (not deployed)
+
+- Route-specific trade evolutions, exact names, evolved abilities, Everstone
+  protection and blocking current-level move-learning prompts.
+- Destination Pokédex updates include mirrors, forms, gender and language,
+  with unaffected species and existing Pokémon verified after writing.
+- Reproducible tables and primary-source citations. Non-base Gen V dex forms
+  are blocked pending native-code corroboration, documented in MOVE_IMPLEMENTATION.
+
 ## 2026-11-03 · Move phase 1 (not deployed)
 
 - Verified PC removal in generations I–V, GB compaction and active boxes,
