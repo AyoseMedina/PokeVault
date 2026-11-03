@@ -318,3 +318,22 @@ remain in the browser; the server does not receive them.
 
 Exports preserve originals and produce new files to install manually in your
 emulator. Read the in-app guide before preparing transfers.
+
+
+## Updating the bank and retaining versions
+
+This version opens IndexedDB version 2. The first valid write moves byte buffers
+to a hash-indexed store in the same transaction; Pokémon keys do not change.
+Close other tabs if the upgrade is blocked. Do not downgrade the application
+against this database: export `.pvault` and keep this version for recovery.
+
+In **Copias de seguridad** (Backups), download the complete v2 `.pvault`. v1
+imports remain supported. Merging retains current organization, adds missing
+data, and keeps up to 25 restore points, prioritizing existing points.
+To free an old version, use **Mis partidas → Retirar versión**: download the bank,
+verify the copy, then type RETIRAR. Its notes, favorites and unreferenced local
+backups are removed too.
+
+If a save cannot be read, retain its original and `.pvault` before changing
+versions. An unknown schema blocks writes and offers raw JSON recovery without
+modifying stored data. [Details and tests](docs/VALIDATION.md#english).

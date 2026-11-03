@@ -134,8 +134,8 @@ test('login throttling blocks repeated attempts even when usernames change', asy
   for (let i=0;i<2;i++) assert.equal((await f.request('/auth/login',{method:'POST',body:{username:`unknown${i}`,password:'bad'},headers:{'X-CSRF-Token':csrf}})).status,401);
   assert.equal((await f.request('/auth/login',{method:'POST',body:{username:env.POKEVAULT_USERNAME,password},headers:{'X-CSRF-Token':csrf}})).status,429);
   const account = await fixture(t,{loginLimit:20,globalLimit:2});
-  for(let i=0;i<2;i++) assert.equal((await account.login({username:`unknown${i}`})).status,401);
-  assert.equal((await account.login()).status,429);
+  for(let i=0;i<3;i++) assert.equal((await account.login({username:`unknown${i}`})).status,401);
+  assert.equal((await account.login()).status,200);
 });
 test('secure mode uses a host-only Secure cookie and requires a trusted HTTPS proxy', async t => {
   const f = await fixture(t,{env:{POKEVAULT_ORIGIN:'https://bank.example',POKEVAULT_TRUST_PROXY:'loopback'}});
@@ -153,4 +153,26 @@ test('Host validation prevents alternate-origin access; oversized and malformed 
   assert.equal((await f.request('/login',{headers:{Host:'attacker.example'}})).status,421);
   assert.equal((await f.request('/auth/login',{method:'POST',body:'{',headers:{'X-CSRF-Token':csrf}})).status,400);
   assert.equal((await f.request('/auth/login',{method:'POST',body:{password:'a'.repeat(3000)},headers:{'X-CSRF-Token':csrf}})).status,413);
+});
+
+
+test('invalid CSRF and content types do not consume password attempts', async t => {
+  const f=await fixture(t,{loginLimit:1});
+  for(let i=0;i<12;i++) assert.equal((await f.request('/auth/login',{method:'POST',body:{}})).status,403);
+  assert.equal((await f.login()).status,200);
+});
+test('one client cannot consume the password attempt allowance of another trusted client', async t => {
+  const f=await fixture(t,{loginLimit:2,env:{POKEVAULT_TRUST_PROXY:'loopback'}}),csrf=await f.csrf();
+  for(let i=0;i<2;i++)assert.equal((await f.request('/auth/login',{method:'POST',body:{username:'bad',password:'bad'},headers:{'X-CSRF-Token':csrf,'X-Forwarded-For':'192.0.2.1'}})).status,401);
+  assert.equal((await f.request('/auth/login',{method:'POST',body:{username:env.POKEVAULT_USERNAME,password},headers:{'X-CSRF-Token':csrf,'X-Forwarded-For':'192.0.2.2'}})).status,200);
+});
+test('server fails closed when the authenticated entry cannot be injected', () => {
+  assert.throws(()=>createApp(readConfig(env),{indexHTML:'<html><head></head><script src="./app.js?v=2"></script></html>'}),/entry point/);
+});
+test('anonymous session churn cannot evict authenticated sessions', async () => {
+  const {PartitionedStore}=await import('../session-store.js');const store=new PartitionedStore(60000);
+  const put=(id,data)=>new Promise((resolve,reject)=>store.set(id,{cookie:{maxAge:60000},...data},e=>e?reject(e):resolve()));
+  try {await put('owner',{authenticated:true});for(let i=0;i<600;i++)await put('anonymous-'+i,{});
+    assert.equal((await new Promise((resolve,reject)=>store.get('owner',(e,s)=>e?reject(e):resolve(s)))).authenticated,true);
+  } finally {store.stopInterval();}
 });

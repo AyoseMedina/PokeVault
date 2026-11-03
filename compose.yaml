@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     pull_policy: build
     restart: unless-stopped
+    mem_limit: 512m
     environment:
       POKEVAULT_USERNAME: "${POKEVAULT_USERNAME:?Create your credentials first}"
       POKEVAULT_PASSWORD_HASH: "${POKEVAULT_PASSWORD_HASH:?Create your credentials first}"

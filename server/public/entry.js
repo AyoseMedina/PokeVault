@@ -1,11 +1,22 @@
 // Loaded only by the authenticated server. The standalone static app is unchanged.
 const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('pokevault-access') : null;
-const signIn = () => location.replace('/login');
+let expired=false;
+function signIn(){
+  expired=true;
+  const check=new Event('pokevault-navigation-check',{cancelable:true});
+  if(document.dispatchEvent(check)){location.replace('/login');return;}
+  if(document.getElementById('session-expired'))return;
+  const notice=document.createElement('aside');notice.id='session-expired';notice.className='session-expired';notice.setAttribute('role','alert');
+  document.body.classList.add('session-has-expired');
+  notice.textContent='Tu sesión ha terminado. Descarga el archivo o termina la operación abierta antes de volver a entrar. Los datos locales no se borran. ';
+  const link=document.createElement('a');link.href='/login';link.textContent='Volver a entrar';notice.append(link);document.body.append(notice);
+}
+document.addEventListener('pokevault-idle',()=>{if(expired)setTimeout(signIn,0);});
 if (channel) channel.onmessage = event => { if (event.data === 'logout') signIn(); };
 let csrf = '', activityPending = false, lastPing = 0, checking = false, exiting = false;
 
 async function checkSession() {
-  if (checking || exiting) return;
+  if (checking || exiting || expired) return;
   checking = true;
   try {
     const response = await fetch('/auth/session', { cache: 'no-store', credentials: 'same-origin' });
@@ -16,7 +27,7 @@ async function checkSession() {
   } finally { checking = false; }
 }
 async function activity() {
-  if (activityPending || exiting || !csrf || Date.now() - lastPing < 60_000) return;
+  if (activityPending || exiting || expired || !csrf || Date.now() - lastPing < 60_000) return;
   activityPending = true; lastPing = Date.now();
   try {
     const response = await fetch('/auth/activity', { method:'POST', headers:{ 'X-CSRF-Token':csrf }, credentials:'same-origin' });
@@ -28,7 +39,7 @@ function mountLogout() {
   const header = document.querySelector('.topbar-right');
   if (!header || header.querySelector('[data-auth-logout]')) return;
   const button = document.createElement('button'); button.type = 'button'; button.className = 'auth-logout'; button.dataset.authLogout = '';
-  button.textContent = 'Cerrar sesión'; button.title = 'Cerrar sesión sin borrar el banco de este navegador';
+  button.textContent = 'Cerrar sesión'; button.title = 'El banco permanece sin cifrar en este perfil del navegador; cerrar sesión no lo borra';
   button.onclick = async () => {
     if (exiting) return; exiting = true; button.disabled = true;
     try {

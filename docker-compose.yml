@@ -5,6 +5,7 @@ services:
     build: .
     pull_policy: build
     restart: unless-stopped
+    mem_limit: 512m
     # Connect your Nginx to the application's network in Portainer.
     # Conecta tu Nginx a la red de la aplicación desde Portainer.
     expose:

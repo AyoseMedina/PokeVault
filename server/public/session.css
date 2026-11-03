@@ -1,1 +1,5 @@
 .auth-logout{font:inherit;font-size:11px;color:#191b22;background:#f6f3f4;border:1px solid #ddddE3;border-radius:7px;padding:7px 10px;cursor:pointer;white-space:nowrap}.auth-logout:hover{background:#f6f3f4}.auth-logout:focus-visible{outline:2px solid #626773;outline-offset:3px}.auth-logout:disabled{opacity:.6}@media(max-width:600px){.auth-logout{font-size:9px;padding:6px 8px}.topbar-right .private-chip{display:none}}
+
+.session-expired{position:fixed;z-index:250;bottom:0;left:0;right:0;padding:14px max(16px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom));background:#191b22;color:#fff;font:14px/1.5 system-ui;border-top:3px solid #c72438}.session-expired a{color:#fff;text-decoration:underline}.session-expired~*{scroll-margin-bottom:110px}
+
+.session-has-expired .modal-overlay{padding-bottom:150px}.session-has-expired .modal{max-height:calc(100dvh - 180px)}@media(max-height:400px){.session-expired{font-size:12px;padding:8px}.session-has-expired .modal-overlay{padding-bottom:110px}.session-has-expired .modal{max-height:calc(100dvh - 130px)}}

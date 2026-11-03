@@ -11,21 +11,21 @@ defecto ni recuperación por correo. Los guardados siguen en el navegador.
 ### Protecciones
 
 - Contraseñas de 15–128 caracteres sin recortes, hash scrypt con sal aleatoria
-  de 16 bytes (`N=131072`, `r=8`, `p=1`); no se conserva la contraseña en claro.
-- Sesiones firmadas y aleatorias, almacenadas en memoria con límite de 512.
+  de 16 bytes (`N=131072`, `r=8`, `p=1`); el servidor solo conserva el hash, no la contraseña en claro.
+- Sesiones firmadas y aleatorias, almacenadas en memoria: hasta 128 autenticadas y 512 previas, en almacenes separados.
   Se renueva el identificador al entrar y se revoca en el servidor al salir.
 - Cookies `HttpOnly` y `SameSite=Strict`, sin Domain. En HTTPS también `Secure`
   y prefijo `__Host-`. Ninguna credencial ni identificador va a localStorage.
 - Caducidad de 30 minutos sin interacción y 8 horas como máximo. La consulta
-  periódica no renueva la actividad. Cerrar sesión avisa a las otras pestañas.
+  periódica no renueva la actividad. Cerrar sesión avisa a las otras pestañas. Si hay una operación o ventana abierta, se muestra un aviso y se aplaza la navegación para conservar el trabajo y las descargas; el servidor revoca la sesión inmediatamente.
 - Validación de Host, origen exacto y CSRF para login, actividad y logout.
-- 8 intentos fallidos por dirección cada 15 minutos; 30 globales para la cuenta.
+- 8 intentos fallidos por dirección cada 15 minutos. CSRF, formato JSON y tamaño se validan antes de contarlos; no hay un bloqueo global de la cuenta.
   Cálculo de hash y creación de sesiones previas también limitados. Los errores
   no indican si un usuario existe. Un reinicio restablece sesiones y límites.
 - Aplicación, estilos y sprites protegidos. Solo son públicos el formulario,
   sus recursos, el favicon y `/healthz`.
 - `no-store`, CSP sin scripts en línea, protección contra marcos y HSTS en HTTPS.
-  Los registros no incluyen contraseñas, tokens ni cuerpos de petición.
+  Los fallos de acceso registran la IP efectiva; no incluyen contraseñas, tokens ni cuerpos de petición.
 - Aplicación sin root y con sistema de archivos de solo lectura.
 
 ### Nginx existente, local y Caddy opcional
@@ -89,21 +89,21 @@ recovery. Saves remain in the browser.
 ### Protections
 
 - Passwords contain 15–128 characters without truncation; scrypt hashing uses
-  random 16-byte salts (`N=131072`, `r=8`, `p=1`). No plaintext password is stored.
-- Random signed sessions are stored in memory, capped at 512. Identifiers rotate
+  random 16-byte salts (`N=131072`, `r=8`, `p=1`). The access server stores only the hash, not the plaintext password.
+- Random signed sessions are stored in separate memory stores: up to 128 authenticated and 512 pre-login sessions. Identifiers rotate
   at sign-in and are revoked server-side at logout.
 - `HttpOnly`, `SameSite=Strict` cookies without Domain; HTTPS adds `Secure` and
   `__Host-`. No credentials or session identifiers go into localStorage.
 - Expiry after 30 minutes without interaction and 8 hours at most. Background
-  checks do not renew activity. Logout notifies other tabs.
+  checks do not renew activity. Logout notifies other tabs. An open operation or dialog delays navigation and shows a notice so work/downloads are retained; the server revokes the session immediately.
 - Host, exact-origin and CSRF checks for login, activity and logout.
-- 8 failed attempts per address per 15 minutes; 30 globally for the account.
+- 8 failed attempts per address per 15 minutes. CSRF, JSON format and size are checked first; there is no global account lockout.
   Hash computation and pre-login session creation are also limited. Errors do
   not reveal account existence. Restarting resets sessions and limits.
 - Application, styles and sprites require a session. Only the form, its assets,
   favicon and `/healthz` are public.
 - `no-store`, CSP without inline scripts, frame protection and HTTPS HSTS.
-  Logs exclude passwords, tokens and request bodies.
+  Failed sign-ins log the effective client IP; logs exclude passwords, tokens and request bodies.
 - Non-root application with a read-only filesystem.
 
 ### Existing Nginx, local and optional Caddy
@@ -168,3 +168,28 @@ not expose them to the Internet.
 - [Express: sessions](https://expressjs.com/en/resources/middleware/session/)
 - [Express: trusted proxies](https://expressjs.com/en/guide/behind-proxies/)
 - [Caddy: automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+
+
+### Comprobar el proxy / Verify the proxy
+
+En una prueba de configuración, provoca un único fallo de login y consulta
+`docker compose logs pokevault`: `auth login_failed` debe mostrar la IP del
+cliente. Si siempre aparece la IP de Nginx, corrige `POKEVAULT_TRUST_PROXY` y
+las cabeceras reenviadas. No confíes en todas las redes. El límite por IP no
+sustituye la protección de tráfico del proxy.
+
+During setup, make one failed login attempt and inspect
+`docker compose logs pokevault`: `auth login_failed` should show the client IP.
+If it always shows Nginx's IP, correct `POKEVAULT_TRUST_PROXY` and forwarded
+headers. Do not trust every network. IP throttling does not replace traffic
+protection at the reverse proxy.
+
+Las imágenes base están fijadas por digest y cada servicio tiene un límite de
+512 MiB. Revisa periódicamente los digests y `npm --prefix server audit --omit=dev`;
+fijar una imagen no instala automáticamente futuras correcciones de seguridad.
+`docker/nginx.conf` es solo una referencia de desarrollo estático sin login.
+
+Base images are pinned by digest and each service is limited to 512 MiB.
+Review digests and `npm --prefix server audit --omit=dev` periodically; pinning
+does not automatically install future security fixes. `docker/nginx.conf` is
+only a reference for static development without authentication.

@@ -1,6 +1,6 @@
 import express from 'express';
 import session from 'express-session';
-import makeMemoryStore from 'memorystore';
+import { PartitionedStore } from './session-store.js';
 import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import { randomBytes } from 'node:crypto';
@@ -10,22 +10,23 @@ import { sameString, verifyPassword } from './password.js';
 
 const publicDir = fileURLToPath(new URL('./public/', import.meta.url));
 const distDir = fileURLToPath(new URL('../dist/', import.meta.url));
-const MemoryStore = makeMemoryStore(session);
+
 const token = () => randomBytes(32).toString('hex');
 const regenerate = req => new Promise((resolve, reject) => req.session.regenerate(e => e ? reject(e) : resolve()));
 const save = req => new Promise((resolve, reject) => req.session.save(e => e ? reject(e) : resolve()));
 
-export function createApp(config, { now = Date.now, loginLimit = 8, globalLimit = 30 } = {}) {
+export function createApp(config, { now = Date.now, loginLimit = 8, indexHTML = readFileSync(`${distDir}/index.html`, 'utf8') } = {}) {
   const app = express();
   app.disable('x-powered-by'); app.disable('etag');
   app.set('trust proxy', config.trustProxy.length ? config.trustProxy : false);
-  const store = new MemoryStore({ checkPeriod: 60_000, max: 512, ttl: config.idleMs });
+  const store = new PartitionedStore(config.idleMs);
   const cookieName = config.secure ? '__Host-pokevault.sid' : 'pokevault.local.sid';
   const cookieOptions = { httpOnly: true, sameSite: 'strict', secure: config.secure, path: '/' };
   const clearCookie = res => res.clearCookie(cookieName, cookieOptions);
-  const index = readFileSync(`${distDir}/index.html`, 'utf8')
+  const index = indexHTML
     .replace('src="./app.js"', 'src="/auth-assets/entry.js"')
     .replace('</head>', '<link rel="stylesheet" href="/auth-assets/session.css"></head>');
+  if (!index.includes('src="/auth-assets/entry.js"') || !index.includes('/auth-assets/session.css')) { store.stopInterval(); throw new Error('Authenticated entry point missing from index.html'); }
 
   app.use(helmet({
     contentSecurityPolicy: { directives: {
@@ -77,9 +78,8 @@ export function createApp(config, { now = Date.now, loginLimit = 8, globalLimit 
   const throttled = (_req, res) => res.status(429).json({ error: 'too_many_attempts' });
   const limitOptions = { windowMs: 15 * 60_000, standardHeaders: 'draft-8', legacyHeaders: false, handler: throttled, skipSuccessfulRequests: true };
   const ipLimiter = rateLimit({ ...limitOptions, limit: loginLimit });
-  const accountLimiter = rateLimit({ ...limitOptions, limit: globalLimit, keyGenerator: () => 'single-account' });
   let checking = false;
-  app.post('/auth/login', ipLimiter, accountLimiter, csrf, onlyJSON, express.json({ limit: '2kb', strict: true }), async (req, res) => {
+  app.post('/auth/login', csrf, onlyJSON, express.json({ limit: '2kb', strict: true }), ipLimiter, async (req, res) => {
     const { username, password } = req.body || {};
     if (typeof username !== 'string' || username.length > 64 || typeof password !== 'string' || [...password].length > 128 || password.length === 0) {
       return res.status(401).json({ error: 'invalid_credentials' });
@@ -91,7 +91,7 @@ export function createApp(config, { now = Date.now, loginLimit = 8, globalLimit 
     finally { checking = false; }
     // Always perform the same password derivation, including unknown usernames.
     if (!valid || !sameString(username, config.username)) {
-      console.info('auth login_failed'); return res.status(401).json({ error: 'invalid_credentials' });
+      console.info('auth login_failed', req.ip); return res.status(401).json({ error: 'invalid_credentials' });
     }
     await regenerate(req);
     req.session.authenticated = true; req.session.issuedAt = now(); req.session.lastActive = now(); req.session.csrf = token();

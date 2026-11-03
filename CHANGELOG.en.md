@@ -5,6 +5,30 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Bank protection, recovery and access
+
+- Isolated demo from persisted data: exiting reloads the bank; demo imports and
+  restores cannot replace real data, including saves with no Pokémon.
+- Atomic IndexedDB v2 migration with unique SHA-256 blobs and metadata-only
+  writes. Pokémon keys and revision guards are preserved. Unknown schemas
+  block writes and offer raw recovery.
+- Unreadable saves remain quarantined and exportable without blocking others.
+  Portable .pvault v2 includes originals, backups and history; v1 remains readable.
+  Languages, dates, references and combined save limits are checked before merging.
+- Browser persistence requests, visible quota/usage and external-backup reminders.
+  Old-version retirement requires downloading a backup and written confirmation.
+- IP throttling follows CSRF/JSON checks; removed global account lockout.
+  Authenticated sessions have a separate store. Startup fails if authenticated
+  entry injection fails. Expiry notices preserve open tasks/downloads before navigation.
+- Crystal validates its active-box mirror on import and readback. ZIP instructions
+  now accurately describe custom Crystal → GBA.
+- Docker base images pinned by digest, 512 MiB service limits and a warning on
+  the static Nginx example. npm audit: 0 vulnerabilities.
+- Passed 97 data/logic tests, 18 access tests and isolated Chromium regressions
+  for demo, migration, conflicts, quota failure, backup recovery, confirmed
+  retirement and logout. Mobile transfer flow checked. No physical phone or
+  console verification.
+
 ## 2026-11-03 · Complete mobile interface
 
 - Added a mobile menu with all six sections, focus handling and an inactive

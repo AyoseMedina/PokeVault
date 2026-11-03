@@ -322,3 +322,23 @@ Los guardados se mantienen en el navegador; el servidor no los recibe.
 La exportación conserva los originales y genera archivos nuevos para instalar
 manualmente en el emulador. Consulta la guía de la aplicación antes de preparar
 transferencias.
+
+
+## Actualizar el banco y conservar versiones
+
+Al abrir esta versión, IndexedDB se actualiza a la versión 2. La primera escritura
+válida mueve los bytes a un almacén por hash dentro de la misma transacción;
+no cambia las claves de los Pokémon. Cierra otras pestañas si la actualización
+está bloqueada. No vuelvas a una versión antigua del programa con esta base:
+exporta `.pvault` y conserva esta versión para recuperarla.
+
+En **Copias de seguridad**, descarga el `.pvault` v2 completo. Aún puedes importar
+v1. En una fusión se conserva la organización existente, se incorporan los datos
+que faltan y se mantienen hasta 25 puntos de restauración, priorizando los actuales.
+Para liberar una versión antigua, usa **Mis partidas → Retirar versión**: requiere
+descargar el banco, comprobar la copia y escribir RETIRAR. También se retiran sus
+notas, favoritos y respaldos locales que ya no tengan referencias.
+
+Si una partida no se puede leer, conserva sus originales y el `.pvault` antes de
+cambiar de versión. Un esquema desconocido bloquea la escritura y ofrece una
+recuperación JSON sin modificar el almacenamiento. [Detalles y pruebas](docs/VALIDATION.md).

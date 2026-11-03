@@ -9,6 +9,7 @@ function source(species=25,word=0x8888){
   const b=makeFixtureG2([species]),o=0x4000+22;
   b[o+2]=33;b[o+23]=35;const exp=expFor(35,DATA.growth[species]);b[o+8]=exp>>>16;b[o+9]=exp>>>8;b[o+10]=exp;
   dv(b).setUint16(o+21,word,false);b[o+27]=123;b[o+28]=0x24;b[o+29]=10;b[o+30]=0x82;
+  b.set(b.subarray(0x4000,0x444E),0x2D10);
   const p=parseSave(b,'crystal').records[0];return {...p,game:'crystal'};
 }
 const dest=game=>({game,bytes:makeFixtureG3(game,[makeDemoPK3(1,12,765)])});

@@ -172,6 +172,9 @@ export function parseG2(b,language='es'){
     records.push(...readList2(b,offset,20,false,language,{box,location:'pc',boxName:label}));
   }
   records.push(...readList2(b,0x2865,6,true,language,{box:-1,location:'party',boxName:'Equipo'}));
+  // pret/pokecrystal SaveBoxAddress and LoadBoxAddress copy the full 0x44E payload.
+  const current=b[0x2700],bank=(current<7?0x4000:0x6000)+(current%7)*0x450;
+  assert(bytesEqual(b.subarray(0x2D10,0x315E),b.subarray(bank,bank+0x44E)),'La caja activa de Cristal difiere de su copia. Guarda dentro del juego y vuelve a importar; no se sobrescribirá ninguna copia.');
   const invalid=records.filter(p=>!p.valid).length;
   return {generation:2,game:'crystal',trainer:decode2(b.subarray(0x200B,0x2013),language),tid:be16(b,0x2009),records,boxes,language,checks:[{label:'Tamaño de batería',ok:true,detail:'32 KiB'},{label:'Checksum principal',ok:true,detail:'Verificado'},{label:'Listas de cajas y equipo',ok:true,detail:'15 / 15'},{label:'Estructuras Pokémon',ok:invalid===0,detail:invalid?`${invalid} en cuarentena`:`${records.length} verificadas`}],warnings:['Cristal permite copias entre partidas de generación II y recibir desde Amarillo, con respaldo. Cristal → GBA requiere activar la conversión personalizada no oficial y revisar sus cambios.','La suma principal de Cristal no cubre todas las cajas; las listas se comprueban por estructura.']};
 }
@@ -287,5 +290,6 @@ export function makeFixtureG2(species=[245,157,181,196,197,248,130,251]){
   for(let box=0;box<14;box++){const o=(box<7?0x4000:0x6000)+(box%7)*0x450;b[o+1]=255;b.set(encode2('CAJA '+(box+1),9),0x2703+box*9);}
   b[0x2866]=255;b[0x4000]=species.length;b[0x4001+species.length]=255;
   species.forEach((s,i)=>{b[0x4001+i]=s;const o=0x4000+22+i*32;b[o]=s;b[o+31]=35+i*3;view(b).setUint16(o+6,12345,false);view(b).setUint16(o+21,0x8888,false);b.set(encode2('DEMO',11),0x4000+22+640+i*11);b.set(encode2(DATA.names[s].toUpperCase(),11),0x4000+22+640+220+i*11);});
+  b.set(b.subarray(0x4000,0x444E),0x2D10);
   let sum=0;for(let i=0x2009;i<=0x2B82;i++)sum=(sum+b[i])&65535;put16(b,0x2D0D,sum);put16(b,0x1F0D,sum);return b;
 }

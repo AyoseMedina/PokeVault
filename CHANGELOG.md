@@ -5,6 +5,31 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Protección del banco, recuperación y acceso
+
+- Aislada la demo del banco persistido: salida mediante relectura, importación y
+  restauración protegidas frente a un banco real, incluso si no tiene Pokémon.
+- Migración atómica a IndexedDB v2, originales únicos por SHA-256 y escritura
+  de metadatos sin copiar los bytes. Se mantienen claves y controles de revisión.
+  Esquemas desconocidos bloquean escrituras y ofrecen recuperación en bruto.
+- Partidas ilegibles en cuarentena, exportables sin bloquear las demás. Respaldo
+  .pvault v2 con originales, respaldos e historial; lectura v1 conservada.
+  Validación previa de idiomas, fechas, referencias y límite combinado de partidas.
+- Persistencia solicitada al navegador, cuota/uso visibles y recordatorios de
+  copia externa. Retirada de versiones con descarga previa y confirmación escrita.
+- Login limitado por IP después de CSRF/JSON; eliminado el bloqueo global de la
+  cuenta. Sesiones autenticadas separadas de las anónimas. Arranque bloqueado
+  si no se puede insertar el punto de entrada autenticado. Aviso de caducidad
+  que conserva operaciones abiertas y archivos pendientes antes de navegar.
+- Cristal valida la coincidencia de su caja activa y la copia; la relectura
+  posterior la vuelve a comprobar. LEEME corregido para Cristal → GBA.
+- Imágenes Docker fijadas por digest, límite de 512 MiB por servicio y aviso
+  explícito en el ejemplo Nginx estático. Auditoría npm: 0 vulnerabilidades.
+- Superadas 97 pruebas de lógica/datos, 18 de acceso y regresiones en Chromium
+  aislado: demo, migración, conflictos, fallo de cuota, respaldos, recuperación,
+  retirada confirmada y cierre de sesión. Flujo móvil de transferencia comprobado.
+  No se ha probado en teléfonos físicos ni consola real.
+
 ## 2026-11-03 · Interfaz completa para móviles
 
 - Añadido menú móvil con las seis secciones, control del foco y fondo inactivo

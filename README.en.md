@@ -32,6 +32,14 @@ The interface and sign-in use a red, white and charcoal Poké Ball palette.
 
 The interface adapts to phones and tablets: a menu with every section, touch controls, boxes, Pokédex and full-width review/export screens. To move Pokémon without dragging, tap their selection buttons and choose **Mover de caja** (Move to box).
 
+
+The bank stores each original once per hash. Demo mode cannot replace a real
+bank; unreadable saves remain quarantined and downloadable. Backups shows
+persistence/quota and reminds you to export `.pvault` after changes or seven days.
+The browser decides persistence; it does not replace an external backup.
+`.pvault` v2 includes originals, backups and history; v1 files remain readable.
+[Migration, recovery and testing](docs/VALIDATION.md#english).
+
 ## Quick start
 
 ```bash
@@ -108,7 +116,9 @@ With Node.js 22 or newer:
 npm test
 ```
 
-The save suite contains 89 tests and needs no package installation. The access server adds 14 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. Checks run locally; there are no GitHub Actions workflows. Portainer builds directly from Git.
+The save suite contains 97 tests and needs no package installation. The access server adds 18 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. Checks run locally; there are no GitHub Actions workflows. Portainer builds directly from Git.
+
+IndexedDB and isolated browser regressions: `npm run test:browser`. See [setup and coverage](docs/VALIDATION.md#english).
 
 ## Project map
 
