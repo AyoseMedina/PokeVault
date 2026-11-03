@@ -23,10 +23,15 @@ en la Pokédex. Las transferencias tampoco añaden marcas de visto/capturado.
 Las descripciones **no están extraídas del guardado**: son textos de referencia
 de PokéAPI, incluidos localmente en Docker. No se envían partidas ni se consulta
 la API desde el navegador. La revisión usada tiene los textos de las 16 ediciones
-compatibles en inglés, pero no en español. Al seleccionar español se muestra el
-texto inglés **de la misma edición**, identificado como tal. Nunca se sustituye
-silenciosamente por otra versión. No se incluyen descripciones de formas
-alternativas ni se afirma que estos textos provengan de la ROM del usuario.
+compatibles en inglés, pero **ninguna edición de generación I–V tiene texto
+español en PokéAPI** (el español empieza en X/Y). Por decisión del usuario
+(2026-11-03), en español se muestra el texto **oficial de una edición posterior**,
+siempre indicándola: Amarillo → Let's Go, Pikachu!; Rojo Fuego → Let's Go,
+Pikachu! (y Rubí Omega/X a partir del #152); Verde Hoja → Let's Go, Eevee! (y
+Zafiro Alfa/Y); Rubí/Esmeralda → Rubí Omega; Zafiro → Zafiro Alfa; el resto →
+X o Y. La opción «English» muestra el texto exacto de la edición. No se incluyen
+descripciones de formas alternativas ni se afirma que estos textos provengan de
+la ROM del usuario.
 
 ## English
 
@@ -49,17 +54,21 @@ demo saves can contain Pokémon without dex flags. Transfers do not update dex f
 Descriptions are **not extracted from the save**. They are reference text from
 PokéAPI, bundled locally with Docker. No saves are uploaded and the browser never
 calls the API. The pinned dataset has English descriptions for all 16 supported
-editions, but no Spanish descriptions for those editions. Spanish selection
-falls back explicitly to English **from the same version**, never silently to
-another game. Alternate-form descriptions and extraction from the user's ROM
-are outside the scope of this feature.
+editions, but **no generation I–V edition has Spanish text in PokéAPI** (Spanish
+starts with X/Y). By user decision (2026-11-03), Spanish shows the **official
+text of a later edition**, always named: Yellow → Let's Go, Pikachu!; FireRed →
+Let's Go, Pikachu! (then Omega Ruby/X from #152); LeafGreen → Let's Go, Eevee!
+(then Alpha Sapphire/Y); Ruby/Emerald → Omega Ruby; Sapphire → Alpha Sapphire;
+the rest → X or Y. "English" shows the exact edition text. Alternate-form
+descriptions and extraction from the user's ROM are outside the scope.
 
 ## Fuentes y reproducción / Sources and reproduction
 
 PokéAPI revision: `e5b79b2e15d7c50735a945936afd4cd1cfd94eae`.
 Run `py scripts/build-pokedex.py` (or `python3`) to rebuild
 `dist/pokedex-data.js`. Source CSVs are cached under ignored `.test-output/`.
-Only whitespace is normalized; species, language and exact version are retained.
+Whitespace is normalized and words split across lines are joined (soft hyphen U+00AD, or a hyphen at a line break: "moun­ tains" → "mountains", "bluish-
+white" → "bluish-white"). Species and language are retained; English keeps the exact version and Spanish records its source version.
 
 - [PokéAPI CSV source](https://github.com/PokeAPI/pokeapi/tree/e5b79b2e15d7c50735a945936afd4cd1cfd94eae/data/v2/csv)
 - [PokéAPI license](https://github.com/PokeAPI/pokeapi/blob/e5b79b2e15d7c50735a945936afd4cd1cfd94eae/LICENSE.md)

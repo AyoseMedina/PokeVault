@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSave, makeFixtureG2, makeFixtureG3, checksum32, put16, GAMES } from '../dist/core.js';
 import { fixtureYellow, refreshYellow, fixtureG4, refreshG4, fixtureG5, refreshG5, wrapDSV } from './fixtures/builders.js';
-import { dexEntry } from '../dist/pokedex-catalog.js';
+import { dexEntry, SPANISH_SOURCE_NAMES } from '../dist/pokedex-catalog.js';
 const flag=(b,o,n)=>b[o+((n-1)>>3)]|=1<<((n-1)&7);
 function checksumCrystal(b){let sum=0;for(let i=0x2009;i<=0x2B82;i++)sum=(sum+b[i])&65535;put16(b,0x2D0D,sum);}
 
@@ -41,10 +41,18 @@ test('inconsistent captured/seen flags are reported without repairing original d
   const b=fixtureYellow();flag(b,0x25A3,1);refreshYellow(b);const before=b.slice(),dex=parseSave(b,'yellow').pokedex;
   assert.equal(dex.inconsistent,1);assert.equal(dex.seen[0],false);assert.deepEqual(b,before);
 });
-test('offline descriptions cover each supported version and never substitute another game',()=>{
+test('English is the exact edition; Spanish always names the later source game',()=>{
+  const sources=new Set(Object.keys(SPANISH_SOURCE_NAMES));
   for(const [game,g] of Object.entries(GAMES))for(let n=1;n<=[0,151,251,386,493,649][g.generation];n++){
-    const en=dexEntry(game,n,'en'),es=dexEntry(game,n,'es');assert.ok(en?.text);assert.equal(en.game,game);assert.equal(es.language,'en');assert.equal(es.fallback,true);
+    const en=dexEntry(game,n,'en'),es=dexEntry(game,n,'es');
+    assert.ok(en?.text);assert.equal(en.game,game);assert.equal(en.exact,true);assert.equal(en.sourceGame,game);
+    assert.equal(es.language,'es');assert.equal(es.exact,false);assert.ok(sources.has(es.sourceGame));assert.ok(es.sourceName);assert.ok(es.text);
+    for(const text of [en.text,es.text])assert.ok(!text.includes('­'),`${game} #${n}: soft hyphen`);
   }
+  assert.equal(dexEntry('yellow',25,'es').sourceGame,'letsgopikachu');assert.equal(dexEntry('ruby',25,'es').sourceGame,'omegaruby');
+  assert.equal(dexEntry('crystal',68,'es').sourceGame,'x');assert.match(dexEntry('crystal',68,'es').text,/brazos/);
+  // Line-break hyphenation is joined, not left as "moun tains" / "bluish- white".
+  assert.match(dexEntry('crystal',248,'en').text,/ mountains crumble.$/);assert.match(dexEntry('yellow',5,'en').text,/bluish-white flames/);
   assert.notEqual(dexEntry('crystal',25).text,dexEntry('emerald',25).text);
   assert.equal(dexEntry('yellow',152),null);assert.equal(dexEntry('unknown',1),null);assert.equal(dexEntry('emerald',0),null);
 });

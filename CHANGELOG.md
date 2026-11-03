@@ -5,6 +5,14 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Pokédex en español (sin despliegue)
+
+- PokéAPI no tiene texto español para ninguna edición de generación I–V. En
+  español se muestra el texto oficial de una edición posterior (Let's Go, Rubí
+  Omega/Zafiro Alfa o X/Y), indicada siempre. «English» mantiene el texto exacto.
+- Corregidas las palabras partidas al final de línea en las descripciones
+  (por ejemplo «moun tains», «bluish- white») en todas las ediciones afectadas, sobre todo Amarillo y Cristal.
+
 ## 2026-11-03 · Movimiento, fase 3 y corrección de idioma (sin despliegue)
 
 - Objetos equipados según las tablas generadas de PKHeX, equivalencias II→III

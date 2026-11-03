@@ -5,6 +5,14 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Spanish Pokédex (not deployed)
+
+- PokéAPI has no Spanish text for any generation I–V edition. Spanish now shows
+  the official text of a later edition (Let's Go, Omega Ruby/Alpha Sapphire or
+  X/Y), always named. "English" keeps the exact edition text.
+- Fixed words split across lines in descriptions (e.g. "moun tains",
+  "bluish- white") in every affected edition, mostly Yellow and Crystal.
+
 ## 2026-11-03 · Move phase 3 and cartridge-language correction (not deployed)
 
 - Generated held-item mappings, II→III/III→IV conversion, evolution consumption
