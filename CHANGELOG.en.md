@@ -5,6 +5,22 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Portainer with existing Nginx
+
+- Added `docker-compose.yml` to build only PokéVault from Git and expose 8080
+  internally, without host ports or external network definitions. The
+  administrator connects the Nginx network in Portainer.
+- The stack requires credentials, the public HTTPS URL and trusted proxy IP
+  or subnet. Existing Nginx handles the domain and certificates.
+- Removed the GitHub Actions workflow, its badges and the requirement to wait
+  for remote checks before deploying. Local tests remain available.
+- Updated ES/EN guides; preserved local mode and standalone Caddy as an option
+  for users without a proxy. Application and bank remain intact.
+- Passed 62 save tests and 14 access tests. Verified login, Secure cookies,
+  protected original assets and logout behind Nginx over HTTPS using a test
+  certificate; the application container publishes no host ports. The user's
+  own Nginx and Portainer were neither modified nor tested.
+
 ## 2026-11-03 · Personal sign-in and local/cloud modes
 
 - Added an Express access server, ES/EN screen, credential generator, scrypt

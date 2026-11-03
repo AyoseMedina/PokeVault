@@ -28,7 +28,14 @@ defecto ni recuperación por correo. Los guardados siguen en el navegador.
   Los registros no incluyen contraseñas, tokens ni cuerpos de petición.
 - Aplicación sin root y con sistema de archivos de solo lectura.
 
-### Local y nube
+### Nginx existente, local y Caddy opcional
+
+`docker-compose.yml` incluye solo la aplicación con puerto interno 8080, sin
+puertos de host ni redes externas preconfiguradas. Conecta tú la red del Nginx
+existente en Portainer y apunta a `http://pokevault:8080` (o su alias en esa red).
+Nginx gestiona dominio y TLS. Configura origen HTTPS e IP del proxy como se indica
+abajo; no hay workflows de GitHub Actions. La imagen de PokéVault se construye
+desde el código; Docker descarga la imagen base Node durante la construcción.
 
 `compose.yaml` publica solo en `127.0.0.1`, con `http://localhost:8080`.
 HTTP es una excepción para el mismo equipo: no se admite para dominios o IP LAN.
@@ -42,7 +49,7 @@ configuración; no guardan tu banco.
 
 Con un proxy propio, establece `POKEVAULT_ORIGIN` al origen HTTPS exacto y
 `POKEVAULT_TRUST_PROXY` a sus IP o redes concretas. Conserva el backend inaccesible
-directamente. En el stack incluido, `uniquelocal` queda limitado por la red
+directamente. Solo en el stack opcional de Caddy, `uniquelocal` queda limitado por la red
 interna Docker. El proxy conserva Host y establece `X-Forwarded-Proto: https`.
 
 ### Credenciales y recuperación
@@ -99,7 +106,14 @@ recovery. Saves remain in the browser.
   Logs exclude passwords, tokens and request bodies.
 - Non-root application with a read-only filesystem.
 
-### Local and cloud
+### Existing Nginx, local and optional Caddy
+
+`docker-compose.yml` includes only the application on internal port 8080, without
+host ports or preconfigured external networks. Connect your existing Nginx network
+in Portainer and target `http://pokevault:8080` (or its alias on that network).
+Nginx manages the domain and TLS. Configure the HTTPS origin and proxy IP below;
+there are no GitHub Actions workflows. The PokéVault image is built from source;
+Docker downloads the Node base image during the build.
 
 `compose.yaml` binds only to `127.0.0.1`, using `http://localhost:8080`.
 HTTP is an exception for the same computer, not domains or LAN IPs. An SSH
@@ -113,7 +127,7 @@ certificates and configuration, not the bank.
 
 With your own proxy, set `POKEVAULT_ORIGIN` to the exact HTTPS origin and
 `POKEVAULT_TRUST_PROXY` to specific proxy IPs or networks. Keep the backend
-inaccessible directly. The included stack bounds `uniquelocal` trust using
+inaccessible directly. Only the optional Caddy stack bounds `uniquelocal` trust using
 the internal Docker network. The proxy preserves Host and sets
 `X-Forwarded-Proto: https`.
 
@@ -152,4 +166,5 @@ not expose them to the Internet.
 - [OWASP: Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
 - [OWASP: CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [Express: sessions](https://expressjs.com/en/resources/middleware/session/)
+- [Express: trusted proxies](https://expressjs.com/en/guide/behind-proxies/)
 - [Caddy: automatic HTTPS](https://caddyserver.com/docs/automatic-https)

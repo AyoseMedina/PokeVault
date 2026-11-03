@@ -6,7 +6,8 @@ PokéVault es una aplicación estática de uso personal para gestionar guardados
 de Pokémon de generaciones I–V. Los archivos se procesan en el navegador;
 IndexedDB conserva el banco. No hay servidor de guardados ni dependencias de
 ejecución JavaScript en el navegador. `server/` añade autenticación HTTP para
-Docker y Node; no recibe ni almacena guardados. Caddy proporciona HTTPS en nube.
+Docker y Node; no recibe ni almacena guardados. El proxy Nginx existente gestiona
+HTTPS; Caddy se conserva como alternativa opcional.
 
 Archivos principales:
 
@@ -19,7 +20,8 @@ Archivos principales:
 - `tests/`: pruebas con entidades públicas y guardados sintéticos no jugables.
 - `iniciar.py`: servidor local limitado a 127.0.0.1.
 - `server/`: login, sesiones, limitación de intentos y recursos de acceso ES/EN.
-- `compose.yaml`, `compose.cloud.yaml`: acceso local o HTTPS automático con Caddy.
+- `docker-compose.yml`: Portainer detrás del Nginx existente, sin puertos de host.
+- `compose.yaml`, `compose.cloud.yaml`: acceso local o Caddy opcional.
 
 ## Protección de datos
 

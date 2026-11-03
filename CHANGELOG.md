@@ -5,6 +5,22 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Portainer con Nginx existente
+
+- Añadido `docker-compose.yml` que construye solo PokéVault desde Git y expone
+  8080 internamente, sin publicar puertos en el host ni definir redes externas.
+  La conexión a la red de Nginx queda a cargo del administrador en Portainer.
+- El stack requiere credenciales, URL HTTPS pública e IP o subred del proxy
+  de confianza. Nginx existente gestiona dominio y certificados.
+- Retirados el workflow de GitHub Actions, sus insignias y el requisito de
+  esperar comprobaciones remotas para desplegar. Se conservan las pruebas locales.
+- Actualizadas las guías ES/EN; conservados el modo local y Caddy como opción
+  independiente para quien no disponga de proxy. Aplicación y banco intactos.
+- Superadas 62 pruebas de guardados y 14 de acceso. Verificados login, cookies
+  Secure, recursos originales protegidos y logout detrás de Nginx por HTTPS
+  con certificado de prueba; el contenedor de la aplicación no publica puertos.
+  No se ha modificado ni probado el Nginx o Portainer del usuario.
+
 ## 2026-11-03 · Login personal y modos local/nube
 
 - Añadido servidor de acceso con Express, pantalla ES/EN, generador de

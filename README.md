@@ -2,7 +2,6 @@
 
 <p align="center"><strong>Español</strong> · <a href="README.en.md">English</a></p>
 <p align="center">
-  <a href="https://github.com/AyoseMedina/PokeVault/actions/workflows/ci.yml"><img src="https://github.com/AyoseMedina/PokeVault/actions/workflows/ci.yml/badge.svg" alt="Pruebas y Docker"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-193f36" alt="Licencia GPL-3.0"></a>
   <img src="https://img.shields.io/badge/Pok%C3%A9mon-generaciones_I%E2%80%93V-a5d8b7?labelColor=193f36" alt="Generaciones I a V">
   <a href="EMPEZAR.md#docker-y-portainer-desde-github"><img src="https://img.shields.io/badge/despliegue-Docker_%2B_Portainer-193f36" alt="Docker y Portainer"></a>
@@ -12,7 +11,7 @@
 
 Un banco personal para reunir, organizar y preparar copias de tus Pokémon de generaciones I–V, pensado para R36S / ArkOS. **Tus guardados se procesan y conservan en tu navegador.** No se suben partidas, no hay analítica ni dependencias JavaScript de ejecución.
 
-El código es público y la aplicación se puede alojar en tu propio equipo o servidor. Docker incluye un **login personal validado en el servidor**, y el modo nube añade HTTPS automático con Caddy. Los archivos de guardado se generan localmente y se instalan manualmente en la consola. La interfaz del banco está en español; el login y la documentación están disponibles en español e inglés. Las dependencias del servidor de acceso están separadas del código del navegador.
+El código es público y la aplicación se puede alojar en tu propio equipo o servidor. Docker incluye un **login personal validado en el servidor**, y el despliegue en Portainer utiliza tu Nginx existente con el puerto interno 8080. Los archivos de guardado se generan localmente y se instalan manualmente en la consola. La interfaz del banco está en español; el login y la documentación están disponibles en español e inglés. Las dependencias del servidor de acceso están separadas del código del navegador.
 
 **[Empezar](EMPEZAR.md) · [Docker y Portainer](EMPEZAR.md#docker-y-portainer-desde-github) · [Historial](CHANGELOG.md) · [Contribuir](CONTRIBUTING.md)**
 
@@ -43,7 +42,7 @@ docker compose up -d --build
 
 Abre **http://localhost:8080** en el equipo Docker.
 
-Para Portainer: repositorio `https://github.com/AyoseMedina/PokeVault`, referencia `refs/heads/main` y **Docker Standalone**. Elige `compose.yaml` para local o `compose.cloud.yaml` para nube. En nube, añade `POKEVAULT_DOMAIN` cuando tengas dominio y DNS; Caddy obtiene y renueva el certificado. Sigue la [guía de despliegue](EMPEZAR.md#crear-el-stack).
+Para Portainer: repositorio `https://github.com/AyoseMedina/PokeVault`, referencia `refs/heads/main` y **Docker Standalone**. Usa **`docker-compose.yml`** para tu Nginx: solo la aplicación, sin puertos de host ni redes externas preconfiguradas. Tú conectas la red del proxy en Portainer. Configura las credenciales, `POKEVAULT_ORIGIN` y `POKEVAULT_TRUST_PROXY`. Se conserva `compose.yaml` para local y `compose.cloud.yaml` como opción con Caddy si no tienes proxy. Sigue la [guía de despliegue](EMPEZAR.md#crear-el-stack).
 
 El modo estático original se conserva para desarrollo local **sin login**: `py iniciar.py` en Windows o `python3 iniciar.py` en Linux/macOS, en **http://127.0.0.1:8000**, sin instalar paquetes. No lo expongas a Internet.
 
@@ -98,7 +97,7 @@ Con Node.js 22 o posterior:
 npm test
 ```
 
-La suite de guardados contiene 62 pruebas y no requiere instalar paquetes. El servidor de acceso tiene 14 pruebas adicionales: instala con `npm --prefix server ci --ignore-scripts` y ejecuta `npm run test:auth`. Los archivos generados van a `.test-output/`. GitHub Actions comprueba ambas suites, login, logout, Docker y la configuración de nube. No publica la web ni una imagen en un registro.
+La suite de guardados contiene 62 pruebas y no requiere instalar paquetes. El servidor de acceso tiene 14 pruebas adicionales: instala con `npm --prefix server ci --ignore-scripts` y ejecuta `npm run test:auth`. Los archivos generados van a `.test-output/`. Las comprobaciones se ejecutan localmente; no hay workflows de GitHub Actions. Portainer construye directamente desde Git.
 
 ## Mapa del proyecto
 
@@ -112,7 +111,7 @@ La suite de guardados contiene 62 pruebas y no requiere instalar paquetes. El se
 | `dist/styles.css`, `dist/sprites/` | Diseño adaptable y 649 sprites locales. |
 | `tests/` | Pruebas y entidades públicas de referencia. |
 | `server/` | Servidor de acceso, pantalla ES/EN, generador de credenciales y pruebas. |
-| `Dockerfile`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Login local y despliegue HTTPS con Caddy en Docker / Portainer; configuración Nginx anterior conservada. |
+| `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Portainer con Nginx existente, login local y Caddy opcional; configuración Nginx anterior conservada. |
 | `iniciar.py` | Servidor Python limitado a `127.0.0.1`. |
 | `AGENTS.md` | Reglas de desarrollo y protección de datos; [traducción inglesa](AGENTS.en.md). |
 

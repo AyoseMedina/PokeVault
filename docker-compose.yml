@@ -1,0 +1,26 @@
+# Portainer + proxy existente / existing reverse proxy.
+# Variables: Portainer > Stack > Environment variables. See EMPEZAR.md.
+services:
+  pokevault:
+    build: .
+    pull_policy: build
+    restart: unless-stopped
+    # Connect your Nginx to the application's network in Portainer.
+    # Conecta tu Nginx a la red de la aplicación desde Portainer.
+    expose:
+      - "8080"
+    environment:
+      POKEVAULT_USERNAME: "${POKEVAULT_USERNAME:?Create your credentials first}"
+      POKEVAULT_PASSWORD_HASH: "${POKEVAULT_PASSWORD_HASH:?Create your credentials first}"
+      POKEVAULT_SESSION_SECRET: "${POKEVAULT_SESSION_SECRET:?Create your credentials first}"
+      POKEVAULT_ORIGIN: "${POKEVAULT_ORIGIN:?Set the public HTTPS URL without a trailing slash}"
+      POKEVAULT_TRUST_PROXY: "${POKEVAULT_TRUST_PROXY:?Set the IP or restricted CIDR of your proxy}"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

@@ -43,8 +43,10 @@ No abras index.html directamente: los módulos JavaScript necesitan un servidor.
 
 ## Docker y Portainer desde GitHub
 
-Los despliegues Docker incluyen login y requieren credenciales propias. Hay
-**dos modos** para Docker Standalone: local y nube. La aplicación sigue procesando
+Los despliegues Docker incluyen login y requieren credenciales propias. Para
+**Portainer con tu proxy existente usa `docker-compose.yml`**. También se conservan
+el modo local (`compose.yaml`) y la opción con Caddy (`compose.cloud.yaml`).
+Son archivos completos alternativos para Docker Standalone. La aplicación sigue procesando
 las partidas en el navegador; el servidor Node solo gestiona acceso y archivos
 web. Docker instala sus dependencias durante la construcción. Swarm no está
 configurado en estos stacks.
@@ -94,7 +96,46 @@ ssh -L 8080:127.0.0.1:8080 usuario@TU_SERVIDOR
 Luego abre `http://localhost:8080` en tu ordenador. Para acceso por dominio o
 LAN utiliza HTTPS; no se ofrece login con contraseña por HTTP abierto a la red.
 
-### Nube: HTTPS automático cuando tengas dominio
+### Tu Nginx existente: despliegue en Portainer
+
+`docker-compose.yml` construye solo PokéVault desde Git y expone el puerto
+**8080 dentro de Docker**, sin publicar ningún puerto en el host. No añade
+Nginx, Caddy ni una red externa: tú conectas los contenedores a la red que
+utilices desde Portainer. No utiliza GitHub Actions ni un registro de imágenes.
+
+Una vez conectados, configura en tu Nginx:
+
+| Campo | Valor |
+| --- | --- |
+| Dominio público | Tu dominio |
+| Esquema del destino | `http` |
+| Host del destino | `pokevault` (o el nombre/alias del contenedor en tu red) |
+| Puerto del destino | `8080` |
+| TLS / SSL | Lo gestiona tu Nginx |
+
+El proxy debe conservar el `Host` público y sobrescribir `X-Forwarded-Proto`
+con `https`, así como sanear `X-Forwarded-For` y `X-Forwarded-Host`. Si configuras
+Nginx directamente, dentro del bloque HTTPS y su `location /` puedes usar:
+
+```nginx
+proxy_pass http://pokevault:8080;
+proxy_set_header Host $http_host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-For $remote_addr;
+proxy_set_header X-Forwarded-Host $http_host;
+```
+
+`POKEVAULT_ORIGIN` es la URL pública completa, por ejemplo
+`https://pokevault.tudominio.com`, sin barra final. `POKEVAULT_TRUST_PROXY` es la
+IP interna de Nginx tal como la ve PokéVault, o una subred dedicada al proxy.
+Esto permite validar HTTPS y usar cookies seguras detrás de Nginx. No uses
+`true` ni una red más amplia de lo necesario. Si cambia la IP del proxy,
+actualiza esta variable o usa su subred dedicada con acceso controlado.
+
+No se necesita una base de datos ni un volumen para partidas: el banco sigue
+en el navegador. Mientras preparas el dominio y Nginx, puedes usar el modo local.
+
+### Opcional, sin proxy propio: HTTPS automático con Caddy
 
 1. Crea un registro DNS A (y AAAA solo si IPv6 funciona) apuntando tu dominio
    al servidor. Por ejemplo: `pokevault.tudominio.com`.
@@ -123,21 +164,24 @@ No se crea ni compra el dominio automáticamente. Mientras no lo tengas, usa loc
    Es público y no necesita credenciales de lectura. También puedes usar tu fork;
    si es privado, configura su autenticación en Portainer.
 3. Referencia: `refs/heads/main`.
-4. **Compose path**: `compose.yaml` para local o `compose.cloud.yaml` para nube.
-   Son alternativas completas: no añadas ambos como archivos del mismo stack.
+4. **Compose path**: `docker-compose.yml` para tu proxy existente.
+   Usa `compose.yaml` solo para local, o `compose.cloud.yaml` si necesitas Caddy.
+   Son alternativas completas: no combines estos archivos en un mismo stack.
 5. Configura las variables:
 
-   | Variable | Local | Nube |
-   | --- | --- | --- |
-   | `POKEVAULT_USERNAME` | Generada, obligatoria | Generada, obligatoria |
-   | `POKEVAULT_PASSWORD_HASH` | Generada, obligatoria | Generada, obligatoria |
-   | `POKEVAULT_SESSION_SECRET` | Generada, obligatoria | Generada, obligatoria |
-   | `POKEVAULT_PORT` | Opcional, 8080 | No se usa |
-   | `POKEVAULT_ORIGIN` | Opcional, para conservar un origen local existente | Se obtiene del dominio |
-   | `POKEVAULT_DOMAIN` | No se usa | Obligatoria, sin esquema ni ruta |
+   | Variable | Tu proxy (`docker-compose.yml`) | Local | Caddy opcional |
+   | --- | --- | --- | --- |
+   | `POKEVAULT_USERNAME` | Generada, obligatoria | Obligatoria | Obligatoria |
+   | `POKEVAULT_PASSWORD_HASH` | Generada, obligatoria | Obligatoria | Obligatoria |
+   | `POKEVAULT_SESSION_SECRET` | Generada, obligatoria | Obligatoria | Obligatoria |
+   | `POKEVAULT_ORIGIN` | URL HTTPS pública, obligatoria | Opcional, origen local existente | Se obtiene del dominio |
+   | `POKEVAULT_TRUST_PROXY` | IP o subred exclusiva del proxy, obligatoria | No se usa | Automática en red aislada |
+   | `POKEVAULT_PORT` | No se usa; puerto interno 8080 | Opcional, 8080 | No se usa |
+   | `POKEVAULT_DOMAIN` | No se usa | No se usa | Obligatoria, sin esquema ni ruta |
 
-6. **Deploy the stack**. La aplicación debe estar `healthy`; revisa los logs
-   de Caddy en nube para confirmar la obtención del certificado.
+6. **Deploy the stack**. La aplicación debe estar `healthy`. Configura tu proxy
+   con el destino indicado arriba y abre la URL HTTPS pública para iniciar sesión.
+   En la alternativa con Caddy, revisa sus logs para confirmar el certificado.
 
 La imagen incluye los recursos; no actives volúmenes de rutas relativas ni
 montes `./dist`. El archivo `docker/nginx.conf` anterior se conserva como
@@ -146,8 +190,8 @@ el login. No uses ese servidor estático como despliegue público.
 
 ### Actualizar y cambiar de modo
 
-Sube los cambios a la misma rama y espera la comprobación **Tests & Docker**.
-En Portainer usa **Pull and redeploy**, con **Re-pull image** desactivado:
+Sube los cambios a la misma rama. No hay workflow de GitHub Actions ni hace falta
+ejecutarlo para desplegar. En Portainer usa **Pull and redeploy**, con **Re-pull image** desactivado:
 `pull_policy: build` reconstruye desde Git. Si tu versión no admite esa política,
 actualiza Portainer/Compose; no la quites sin garantizar la reconstrucción.
 
@@ -157,8 +201,9 @@ sesiones, pero conservan el banco en el navegador. El cierre de sesión tampoco
 borra datos. Para recuperar o cambiar la contraseña, ejecuta el generador sin
 `--write-env`, sustituye las tres variables y recrea el contenedor.
 
-Para pasar de local a nube, conserva las credenciales, elige el Compose de nube
-y añade el dominio. Exporta antes un `.pvault`: cambiar protocolo, dominio/IP,
+Para pasar de local a tu proxy, conserva las credenciales, selecciona
+`docker-compose.yml` y configura origen HTTPS e IP del proxy. Si eliges Caddy,
+usa `compose.cloud.yaml` y configura su dominio. Exporta antes un `.pvault`: cambiar protocolo, dominio/IP,
 puerto o perfil de navegador cambia el almacenamiento visible. Restáuralo en
 la nueva dirección. El login no sincroniza ni cifra IndexedDB.
 
@@ -170,7 +215,9 @@ docker compose logs --tail 50
 docker compose down
 ```
 
-En nube añade `-f compose.cloud.yaml` a cada comando. `down` sin `-v` conserva
+Para tu proxy añade `-f docker-compose.yml` a cada comando; para Caddy,
+`-f compose.cloud.yaml`. Sin `-f`, Docker elige `compose.yaml` (local).
+`down` sin `-v` conserva
 los volúmenes del proxy. No se requieren volúmenes para los Pokémon.
 
 ### Publicar una copia propia
@@ -244,11 +291,11 @@ Los guardados se mantienen en el navegador; el servidor no los recibe.
 - README.md: alcance, restricciones, rutas y fuentes.
 - dist/LICENSE: licencia GPL-3.0.
 - LICENSE: copia de la licencia en la raíz para GitHub.
-- Dockerfile, compose.yaml y compose.cloud.yaml: servidor de acceso local/nube.
+- Dockerfile y docker-compose.yml: servidor de acceso para Portainer y tu proxy.
+- compose.yaml y compose.cloud.yaml: alternativas local y Caddy opcional.
 - server/: login, sesiones, dependencias de servidor y pruebas de autenticación.
 - docker/: Caddy y configuración Nginx anterior conservada como referencia.
 - docs/ACCESS.md: protecciones y alcance del login en ambos idiomas.
-- .github/workflows/ci.yml: pruebas y comprobación Docker en GitHub Actions.
 - README.en.md, GETTING_STARTED.md, CHANGELOG.en.md y AGENTS.en.md: documentación inglesa.
 - CONTRIBUTING.md: guía de contribuciones en ambos idiomas.
 - docs/assets/: cabecera visual del repositorio.

@@ -8,7 +8,7 @@ PokéVault is a static personal application for managing Pokémon saves from
 generations I–V. Files are processed in the browser; IndexedDB stores the bank.
 There is no save server and no browser JavaScript runtime dependencies.
 `server/` adds HTTP authentication for Docker and Node without receiving or
-storing saves. Caddy provides HTTPS in cloud mode.
+storing saves. Existing Nginx handles HTTPS; Caddy remains an optional alternative.
 
 Main files:
 
@@ -21,7 +21,8 @@ Main files:
 - `tests/`: tests using public entities and synthetic, non-playable saves.
 - `iniciar.py`: local server restricted to 127.0.0.1.
 - `server/`: login, sessions, throttling and ES/EN access resources.
-- `compose.yaml`, `compose.cloud.yaml`: local access or automatic HTTPS with Caddy.
+- `docker-compose.yml`: Portainer behind existing Nginx, without host ports.
+- `compose.yaml`, `compose.cloud.yaml`: local access or optional Caddy.
 
 ## Data protection
 

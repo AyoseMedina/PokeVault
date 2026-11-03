@@ -1,3 +1,4 @@
+# Optional: standalone HTTPS without an existing proxy. Not needed for Portainer + your proxy.
 # Public-domain HTTPS via Caddy. Configure DNS and credentials before deployment.
 services:
   pokevault:

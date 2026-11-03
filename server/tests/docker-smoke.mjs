@@ -45,5 +45,5 @@ if (process.argv.includes('--prepare')) {
   const previousCookie=cookie();
   assert.equal((await request('/auth/logout',{method:'POST',csrf:current.csrf})).status,200);
   assert.equal((await request('/app.js',{previousCookie})).status,401);
-  console.log(`Docker ${cloud?'HTTPS + Caddy':'localhost'}: login, protected original assets, cookie and logout verified.`);
+  console.log(`Docker ${cloud?'HTTPS reverse proxy':'localhost'}: login, protected original assets, cookie and logout verified.`);
 }

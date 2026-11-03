@@ -44,8 +44,10 @@ application interface is in Spanish.
 
 ## Docker and Portainer from GitHub
 
-Docker deployments include sign-in and require your own credentials. Two
-**Docker Standalone** modes are available: local and cloud. Saves are still
+Docker deployments include sign-in and require your own credentials. For
+**Portainer with your existing proxy use `docker-compose.yml`**. Local mode
+(`compose.yaml`) and optional Caddy (`compose.cloud.yaml`) are also preserved.
+These are complete alternatives for Docker Standalone. Saves are still
 processed in the browser; the Node server only handles access and web files.
 Docker installs its dependencies during the build. These stacks do not target Swarm.
 
@@ -94,7 +96,46 @@ ssh -L 8080:127.0.0.1:8080 user@YOUR_SERVER
 Then open `http://localhost:8080` on your computer. Domain and LAN access require
 HTTPS; password login over network-exposed plaintext HTTP is not supported.
 
-### Cloud: automatic HTTPS once you have a domain
+### Your existing Nginx: Portainer deployment
+
+`docker-compose.yml` builds only PokéVault from Git and exposes port **8080
+inside Docker**, without publishing any host ports. It adds no Nginx, Caddy
+or external network: you connect the containers to your chosen network in
+Portainer. It uses neither GitHub Actions nor an image registry.
+
+Once connected, configure your Nginx:
+
+| Field | Value |
+| --- | --- |
+| Public domain | Your domain |
+| Upstream scheme | `http` |
+| Upstream host | `pokevault` (or the container name/alias on your network) |
+| Upstream port | `8080` |
+| TLS / SSL | Managed by your Nginx |
+
+The proxy must preserve the public `Host`, overwrite `X-Forwarded-Proto` with
+`https`, and sanitize `X-Forwarded-For` and `X-Forwarded-Host`. For directly
+managed Nginx, these directives belong in `location /` inside the HTTPS block:
+
+```nginx
+proxy_pass http://pokevault:8080;
+proxy_set_header Host $http_host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-For $remote_addr;
+proxy_set_header X-Forwarded-Host $http_host;
+```
+
+Set `POKEVAULT_ORIGIN` to the exact public URL, such as
+`https://pokevault.yourdomain.com`, without a trailing slash. Set
+`POKEVAULT_TRUST_PROXY` to Nginx's internal IP as seen by PokéVault, or a dedicated
+proxy subnet. This validates HTTPS and enables secure cookies behind Nginx.
+Do not use `true` or a broader network than needed. If the proxy IP changes,
+update this variable or use its dedicated subnet with controlled access.
+
+No database or save volume is required: the bank stays in the browser. While
+preparing the domain and Nginx, you can use local mode.
+
+### Optional, without your own proxy: automatic HTTPS with Caddy
 
 1. Create a DNS A record (and AAAA only with working IPv6) pointing to your
    server, for example `pokevault.yourdomain.com`.
@@ -123,21 +164,24 @@ purchased or created automatically. Use local mode until you have one.
    Public read access needs no credentials. You can use a fork; configure
    Portainer Git authentication if it is private.
 3. Reference: `refs/heads/main`.
-4. **Compose path**: `compose.yaml` for local or `compose.cloud.yaml` for cloud.
-   These are complete alternatives; do not combine both in one stack.
+4. **Compose path**: `docker-compose.yml` for your existing proxy.
+   Use `compose.yaml` for local only, or `compose.cloud.yaml` if you need Caddy.
+   These are complete alternatives; do not combine these files in one stack.
 5. Configure variables:
 
-   | Variable | Local | Cloud |
-   | --- | --- | --- |
-   | `POKEVAULT_USERNAME` | Generated, required | Generated, required |
-   | `POKEVAULT_PASSWORD_HASH` | Generated, required | Generated, required |
-   | `POKEVAULT_SESSION_SECRET` | Generated, required | Generated, required |
-   | `POKEVAULT_PORT` | Optional, 8080 | Unused |
-   | `POKEVAULT_ORIGIN` | Optional, to preserve an existing local origin | Derived from domain |
-   | `POKEVAULT_DOMAIN` | Unused | Required, without scheme or path |
+   | Variable | Your proxy (`docker-compose.yml`) | Local | Optional Caddy |
+   | --- | --- | --- | --- |
+   | `POKEVAULT_USERNAME` | Generated, required | Required | Required |
+   | `POKEVAULT_PASSWORD_HASH` | Generated, required | Required | Required |
+   | `POKEVAULT_SESSION_SECRET` | Generated, required | Required | Required |
+   | `POKEVAULT_ORIGIN` | Public HTTPS URL, required | Optional existing local origin | Derived from domain |
+   | `POKEVAULT_TRUST_PROXY` | Proxy IP or exclusive subnet, required | Unused | Automatic on isolated network |
+   | `POKEVAULT_PORT` | Unused; internal port 8080 | Optional, 8080 | Unused |
+   | `POKEVAULT_DOMAIN` | Unused | Unused | Required, no scheme or path |
 
-6. **Deploy the stack**. The app must become `healthy`; in cloud mode check
-   Caddy logs to confirm certificate issuance.
+6. **Deploy the stack**. The app must become `healthy`. Configure your proxy
+   with the upstream above and open the public HTTPS URL to sign in.
+   For the optional Caddy setup, check its logs for certificate issuance.
 
 Resources are built into the image; do not enable relative-path volumes or
 mount `./dist`. The old `docker/nginx.conf` is preserved as a reference but is
@@ -146,8 +190,8 @@ that static server is not a public authenticated deployment.
 
 ### Update or switch modes
 
-Push changes to the same branch and wait for **Tests & Docker** to pass. In
-Portainer use **Pull and redeploy**, leaving **Re-pull image** disabled:
+Push changes to the same branch. There is no GitHub Actions workflow or required
+Actions run for deployment. In Portainer use **Pull and redeploy**, leaving **Re-pull image** disabled:
 `pull_policy: build` rebuilds from Git. If unsupported, update Portainer/Compose;
 do not remove it without ensuring the image is rebuilt.
 
@@ -157,8 +201,9 @@ sessions but retain the browser bank. Logout also preserves data. To recover
 or change access, run the generator without `--write-env`, replace all three
 variables and recreate the container.
 
-To switch from local to cloud, keep credentials, select the cloud Compose and
-add the domain. Export `.pvault` first: changing protocol, domain/IP, port or
+To switch from local to your proxy, keep credentials, select `docker-compose.yml`
+and configure the HTTPS origin and proxy IP. For Caddy, use `compose.cloud.yaml`
+and configure its domain. Export `.pvault` first: changing protocol, domain/IP, port or
 browser profile changes visible storage. Restore it at the new address.
 Sign-in does not synchronize or encrypt IndexedDB.
 
@@ -170,7 +215,8 @@ docker compose logs --tail 50
 docker compose down
 ```
 
-In cloud mode add `-f compose.cloud.yaml` to each command. `down` without `-v`
+For your proxy add `-f docker-compose.yml`; for Caddy, add `-f compose.cloud.yaml`
+to each command. Without `-f`, Docker chooses `compose.yaml` (local). `down` without `-v`
 keeps proxy volumes. Pokémon data does not require Docker volumes.
 
 ### Publish your own copy
@@ -242,11 +288,11 @@ remain in the browser; the server does not receive them.
 - `README.md`: scope, restrictions, routes and sources in Spanish.
 - `dist/LICENSE`: GPL-3.0 license.
 - `LICENSE`: the same license at the repository root for GitHub.
-- `Dockerfile`, `compose.yaml`, `compose.cloud.yaml`: local/cloud access server.
+- `Dockerfile`, `docker-compose.yml`: access server for Portainer and your proxy.
+- `compose.yaml`, `compose.cloud.yaml`: local and optional Caddy alternatives.
 - `server/`: login, sessions, server dependencies and authentication tests.
 - `docker/`: Caddy and the previous Nginx configuration retained for reference.
 - `docs/ACCESS.md`: login protections and scope in both languages.
-- `.github/workflows/ci.yml`: tests and Docker checks in GitHub Actions.
 - `README.en.md`, `GETTING_STARTED.md`, `CHANGELOG.en.md`, `AGENTS.en.md`: English documentation.
 - `CONTRIBUTING.md`: contribution guide in both languages.
 - `docs/assets/`: repository banner.

@@ -2,7 +2,6 @@
 
 <p align="center"><a href="README.md">Español</a> · <strong>English</strong></p>
 <p align="center">
-  <a href="https://github.com/AyoseMedina/PokeVault/actions/workflows/ci.yml"><img src="https://github.com/AyoseMedina/PokeVault/actions/workflows/ci.yml/badge.svg" alt="Tests and Docker"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-193f36" alt="GPL-3.0 license"></a>
   <img src="https://img.shields.io/badge/Pok%C3%A9mon-generations_I%E2%80%93V-a5d8b7?labelColor=193f36" alt="Generations I through V">
   <a href="GETTING_STARTED.md#docker-and-portainer-from-github"><img src="https://img.shields.io/badge/deploy-Docker_%2B_Portainer-193f36" alt="Docker and Portainer"></a>
@@ -12,7 +11,7 @@
 
 A personal bank for collecting, organizing and preparing copies of your generation I–V Pokémon, designed for R36S / ArkOS. **Your save files are processed and stored in your browser.** No save uploads, analytics or JavaScript runtime dependencies.
 
-The code is public and you can host the application on your own computer or server. Docker includes **personal sign-in validated server-side**, and cloud mode adds automatic HTTPS with Caddy. Save files are generated locally and installed on the console manually. The bank interface is in Spanish; sign-in and documentation support Spanish and English. Access-server dependencies are separate from browser code.
+The code is public and you can host the application on your own computer or server. Docker includes **personal sign-in validated server-side**, and Portainer deployment uses your existing Nginx with internal port 8080. Save files are generated locally and installed on the console manually. The bank interface is in Spanish; sign-in and documentation support Spanish and English. Access-server dependencies are separate from browser code.
 
 **[Get started](GETTING_STARTED.md) · [Docker and Portainer](GETTING_STARTED.md#docker-and-portainer-from-github) · [Changelog](CHANGELOG.en.md) · [Contribute](CONTRIBUTING.md#english)**
 
@@ -43,7 +42,7 @@ docker compose up -d --build
 
 Open **http://localhost:8080** on the Docker computer.
 
-For Portainer: repository `https://github.com/AyoseMedina/PokeVault`, reference `refs/heads/main`, **Docker Standalone**. Choose `compose.yaml` for local or `compose.cloud.yaml` for cloud. In cloud mode, set `POKEVAULT_DOMAIN` once your domain and DNS are ready; Caddy obtains and renews the certificate. Follow the [deployment guide](GETTING_STARTED.md#create-the-stack).
+For Portainer: repository `https://github.com/AyoseMedina/PokeVault`, reference `refs/heads/main`, **Docker Standalone**. Use **`docker-compose.yml`** for your Nginx: just the application, no host ports or preconfigured external networks. You connect the proxy network in Portainer. Set credentials, `POKEVAULT_ORIGIN` and `POKEVAULT_TRUST_PROXY`. Local `compose.yaml` and optional Caddy `compose.cloud.yaml` remain available. Follow the [deployment guide](GETTING_STARTED.md#create-the-stack).
 
 The original static mode remains available for local development **without sign-in**: run `py iniciar.py` on Windows or `python3 iniciar.py` on Linux/macOS and open **http://127.0.0.1:8000**, without installing packages. Do not expose it to the Internet.
 
@@ -101,7 +100,7 @@ With Node.js 22 or newer:
 npm test
 ```
 
-The save suite contains 62 tests and needs no package installation. The access server adds 14 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. GitHub Actions checks both suites, login, logout, Docker and cloud configuration. It does not publish the website or a registry image.
+The save suite contains 62 tests and needs no package installation. The access server adds 14 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. Checks run locally; there are no GitHub Actions workflows. Portainer builds directly from Git.
 
 ## Project map
 
@@ -115,7 +114,7 @@ The save suite contains 62 tests and needs no package installation. The access s
 | `dist/styles.css`, `dist/sprites/` | Responsive layout and 649 local sprites. |
 | `tests/` | Tests and public reference entities. |
 | `server/` | Access server, ES/EN screen, credential generator and tests. |
-| `Dockerfile`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Local login and Caddy HTTPS deployment in Docker / Portainer; previous Nginx config retained. |
+| `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Portainer with existing Nginx, local sign-in and optional Caddy; previous Nginx config retained. |
 | `iniciar.py` | Python server bound to `127.0.0.1`. |
 | `AGENTS.md` | Development and data-protection rules; [English translation](AGENTS.en.md). |
 
