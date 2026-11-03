@@ -356,9 +356,16 @@ function showEmulatorConverter(){
     <div class="transfer-form"><div class="field"><label for="conv-file">Guardado (.sav o .srm)</label><input id="conv-file" type="file" accept=".sav,.srm"></div>
     <div class="field"><label for="conv-game">Juego</label><select id="conv-game">${games.map(([id,g])=>`<option value="${id}" ${id==='crystal'?'selected':''}>Pokémon ${g.name}</option>`).join('')}</select></div>
     <div class="field"><label for="conv-target">Convertir para</label><select id="conv-target">${Object.entries(EMULATOR_TARGETS).map(([id,t])=>`<option value="${id}">${t.label}</option>`).join('')}</select></div></div>
+    <p class="inline-note" id="conv-clock-info"></p>
     <div id="conv-clock" class="checklist" hidden><p><strong>Reloj de Cristal.</strong> En la R36S el reloj va en un archivo aparte con el mismo nombre y extensión <code>.rtc</code> (junto al .srm). Súbelo para que la Wii continúe con la misma hora del juego.</p><div class="field"><label for="conv-rtc">Archivo .rtc de la R36S</label><input id="conv-rtc" type="file" accept=".rtc"></div><label><input type="checkbox" id="conv-noclock">No tengo el .rtc: continuar sin reloj (Cristal pedirá ajustar la hora)</label></div>
     <div id="conv-status"></div><div class="modal-actions"><button class="btn btn-light" data-close>Cancelar</button><button class="btn btn-primary" id="conv-run">${icon('refresh')}Convertir</button></div>`,()=>{
-    const update=()=>{$('#conv-clock').hidden=!(needsClock($('#conv-game').value)&&$('#conv-target').value==='wii');};
+    // The .rtc is only requested for Crystal, towards the Wii, from a .srm (R36S). Anything else hides it.
+    const update=()=>{
+      const game=$('#conv-game').value,target=$('#conv-target').value,file=$('#conv-file').files[0],fromSrm=!file||/\.srm$/i.test(file.name);
+      const ask=needsClock(game)&&target==='wii'&&fromSrm;
+      $('#conv-clock').hidden=!ask;if(!ask){$('#conv-rtc').value='';$('#conv-noclock').checked=false;}
+      $('#conv-clock-info').textContent=!needsClock(game)?`Pokémon ${GAMES[game].name} no usa reloj: no hace falta ningún archivo .rtc.`:target==='r36s'?'Cristal: si el .sav viene de VBA GX, el reloj se pasa solo al archivo .rtc de la R36S.':fromSrm?'Cristal: necesita el .rtc de la R36S para conservar la hora del juego.':'Cristal: este .sav ya es de la Wii y conserva su reloj.';
+    };
     $('#conv-file').onchange=()=>{const f=$('#conv-file').files[0];if(f)$('#conv-target').value=/\.srm$/i.test(f.name)?'wii':'r36s';update();};
     $('#conv-game').onchange=update;$('#conv-target').onchange=update;update();
     $('#conv-run').onclick=async()=>{

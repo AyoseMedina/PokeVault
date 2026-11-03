@@ -48,3 +48,6 @@
 @media (max-width:560px){.trade-stage{grid-template-columns:1fr;gap:6px}.trade-track{height:40px}.trade-slot{height:84px}.trade-slot img{width:76px;height:76px}}
 
 .heading-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+/* The hidden attribute must win over component display rules (e.g. .checklist). */
+[hidden]{display:none!important}
