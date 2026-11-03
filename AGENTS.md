@@ -9,6 +9,11 @@ ejecución JavaScript en el navegador. `server/` añade autenticación HTTP para
 Docker y Node; no recibe ni almacena guardados. El proxy Nginx existente gestiona
 HTTPS; Caddy se conserva como alternativa opcional.
 
+**Cambio autorizado (2026-11-03), pendiente de implementar:** en modo Docker/Node
+el banco completo vivirá en el servidor, cifrado en el volumen `pokevault_data`
+según `docs/SERVER_VAULT.md`. El análisis y la escritura siguen en el navegador;
+`iniciar.py` conserva IndexedDB. Hasta que se implemente, se aplica lo anterior.
+
 Archivos principales:
 
 - `dist/app.js`: interfaz, persistencia, respaldo y flujo de revisión/exportación.
@@ -91,6 +96,6 @@ El usuario autorizó (2026-11-03) la cuenta con correo según
 `docs/ACCOUNT_EMAIL.md`: datos de la cuenta en un volumen persistente, SMTP con
 TLS, cambio y recuperación de contraseña por enlace, y avisos que pueden incluir
 un resumen mínimo de Pokémon enviado desde el navegador, que el servidor envía
-por correo y descarta. El servidor sigue sin recibir ni guardar partidas y no
-almacena datos de Pokémon. Las ideas de `docs/ROADMAP.md` no están autorizadas
+por correo y descarta. Las partidas y los datos de Pokémon solo se guardan en el
+servidor según `docs/SERVER_VAULT.md` (cifrados en el volumen). Las ideas de `docs/ROADMAP.md` no están autorizadas
 hasta que tengan su propia especificación.

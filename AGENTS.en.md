@@ -10,6 +10,11 @@ There is no save server and no browser JavaScript runtime dependencies.
 `server/` adds HTTP authentication for Docker and Node without receiving or
 storing saves. Existing Nginx handles HTTPS; Caddy remains an optional alternative.
 
+**Authorized change (2026-11-03), not yet implemented:** in Docker/Node mode the
+whole bank will live on the server, encrypted on the `pokevault_data` volume as
+described in `docs/SERVER_VAULT.md`. Parsing and writing stay in the browser, and
+`iniciar.py` keeps IndexedDB. Until then, the paragraph above applies.
+
 Main files:
 
 - `dist/app.js`: interface, persistence, backups and review/export flow.
@@ -90,6 +95,6 @@ The user authorized (2026-11-03) the email-enabled account described in
 `docs/ACCOUNT_EMAIL.md`: account data on a persistent volume, TLS-only SMTP,
 password change and link-based recovery, and notifications that may include a
 minimal Pokémon summary sent by the browser. The server emails that summary and
-discards it. The server still never receives or stores saves and does not store
-Pokémon data. Ideas in `docs/ROADMAP.md` are not authorized until they have their
+discards it. Saves and Pokémon data are stored on the server only as described
+in `docs/SERVER_VAULT.md` (encrypted on the volume). Ideas in `docs/ROADMAP.md` are not authorized until they have their
 own specification.
