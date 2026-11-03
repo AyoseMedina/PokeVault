@@ -5,6 +5,15 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Shiny and animated sprites (not deployed)
+
+- Shiny Pokémon use their shiny sprite (bank, detail, selection and move review).
+- Black/White animated sprites in the bank and detail views; the system
+  "reduce motion" setting keeps static images.
+- 1,947 local files from PokeAPI/sprites at a pinned commit with SHA-256 in
+  `dist/sprites/SOURCES.json` (`scripts/build-sprites.mjs`); about 60 MB more in
+  the Docker image. The site still loads only same-origin images (CSP).
+
 ## 2026-11-03 · Server-side bank (not deployed)
 
 - In Docker/Node mode the whole bank lives on the `pokevault_data` volume,

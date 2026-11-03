@@ -20,5 +20,12 @@
 !dist/LICENSE
 !dist/sprites/
 !dist/sprites/*.png
+!dist/sprites/SOURCES.json
+!dist/sprites/shiny/
+!dist/sprites/shiny/*.png
+!dist/sprites/animated/
+!dist/sprites/animated/*.gif
+!dist/sprites/animated/shiny/
+!dist/sprites/animated/shiny/*.gif
 server/node_modules/
 server/tests/

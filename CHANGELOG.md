@@ -5,6 +5,16 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Sprites variocolor y animados (sin despliegue)
+
+- Los Pokémon variocolor se muestran con su sprite variocolor (banco, ficha,
+  selección y revisión del movimiento).
+- Sprites animados de Negro/Blanco en el banco y en las fichas. Con «reducir
+  movimiento» del sistema se mantienen los estáticos.
+- 1.947 archivos locales de PokeAPI/sprites con versión fijada y SHA-256 en
+  `dist/sprites/SOURCES.json` (`scripts/build-sprites.mjs`); unos 60 MB más en la
+  imagen Docker. La web solo carga imágenes propias, como exige la CSP.
+
 ## 2026-11-03 · Banco en el servidor (sin despliegue)
 
 - En Docker/Node el banco completo se guarda en el volumen `pokevault_data`,

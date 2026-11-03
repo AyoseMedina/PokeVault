@@ -139,7 +139,7 @@ Pruebas del banco en IndexedDB y navegador aislado: `npm run test:browser`. Cons
 | `dist/move*.js` | Movimiento, objetos, evoluciones y Pokédex; tablas reproducibles. |
 | `dist/transfer.js` | Rutas, conversiones y escritura de copias en GB/DS. |
 | `dist/*data.js` | Tablas de especies, texto y conversión con procedencia documentada. |
-| `dist/styles.css`, `dist/sprites/` | Diseño adaptable y 649 sprites locales. |
+| `dist/styles.css`, `dist/sprites/` | Diseño adaptable y sprites locales 1–649: estáticos, variocolor y animados de Negro/Blanco (`scripts/build-sprites.mjs`). |
 | `tests/` | Pruebas y entidades públicas de referencia. |
 | `dist/pokedex*.js`, `dist/custom-transfer*.js` | Pokédex de solo lectura, descripciones locales y conversión Cristal → GBA con activación explícita. |
 | `server/` | Servidor de acceso, pantalla ES/EN, generador de credenciales y pruebas. |
@@ -163,4 +163,4 @@ Pruebas del banco en IndexedDB y navegador aislado: `npm run test:browser`. Cons
 
 Implementación JavaScript original bajo GPL-3.0. Tablas y referencias de [kwsch/PKHeX](https://github.com/kwsch/PKHeX), © sus autores: PK1/PK3/PK4, SAV1/SAV2/SAV3/SAV4/SAV5, StringConverter345, SpeciesName, personal_e y MoveInfo4/5. Licencia en [LICENSE](LICENSE), conservada también en `dist/LICENSE`. Fuentes nativas contrastadas en [pret/pokeyellow](https://github.com/pret/pokeyellow), [pret/pokecrystal](https://github.com/pret/pokecrystal), [pret/pokeemerald](https://github.com/pret/pokeemerald) y [pret/pokefirered](https://github.com/pret/pokefirered). Tablas locales en `data.js`, `formats-data.js` y `transfer-data.js`.
 
-Entidades de referencia: `tests/fixtures/README.md`. Datos de especies y crecimiento: [PokéAPI](https://github.com/PokeAPI/pokeapi). Sprites locales hasta especie649: [PokeAPI/sprites](https://github.com/PokeAPI/sprites). Imágenes y personajes pertenecen a The Pokémon Company. Proyecto personal no oficial.
+Entidades de referencia: `tests/fixtures/README.md`. Datos de especies y crecimiento: [PokéAPI](https://github.com/PokeAPI/pokeapi). Sprites locales hasta la especie 649, también variocolor y animados (commit fijado en `dist/sprites/SOURCES.json`): [PokeAPI/sprites](https://github.com/PokeAPI/sprites). Imágenes y personajes pertenecen a The Pokémon Company. Proyecto personal no oficial.
