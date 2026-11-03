@@ -6,8 +6,9 @@ English translation of [AGENTS.md](AGENTS.md). Keep both documents aligned.
 
 PokéVault is a static personal application for managing Pokémon saves from
 generations I–V. Files are processed in the browser; IndexedDB stores the bank.
-There is no save server and no JavaScript runtime dependencies. Authentication
-for a hosted website is external to the code.
+There is no save server and no browser JavaScript runtime dependencies.
+`server/` adds HTTP authentication for Docker and Node without receiving or
+storing saves. Caddy provides HTTPS in cloud mode.
 
 Main files:
 
@@ -19,6 +20,8 @@ Main files:
 - `dist/styles.css`: responsive design; preserve the existing visual direction.
 - `tests/`: tests using public entities and synthetic, non-playable saves.
 - `iniciar.py`: local server restricted to 127.0.0.1.
+- `server/`: login, sessions, throttling and ES/EN access resources.
+- `compose.yaml`, `compose.cloud.yaml`: local access or automatic HTTPS with Caddy.
 
 ## Data protection
 
@@ -69,3 +72,9 @@ Verify format details against primary sources such as PKHeX and the pret
 decompilations cited in the README. Preserve attribution and GPL-3.0. Update
 CHANGELOG.md with verified facts and EMPEZAR.md if startup changes. Changes to
 this local package do not imply publishing a new hosted website version.
+
+For access changes, install with `npm --prefix server ci --ignore-scripts` and
+run `npm run test:auth` as well as `npm test`. Do not add default credentials,
+public registration or an unauthenticated Docker deployment mode. Restrict
+development HTTP to the host; require HTTPS elsewhere. Logging out must not
+delete or reinitialize IndexedDB.

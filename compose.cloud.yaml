@@ -1,0 +1,59 @@
+# Public-domain HTTPS via Caddy. Configure DNS and credentials before deployment.
+services:
+  pokevault:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: build
+    restart: unless-stopped
+    environment:
+      POKEVAULT_USERNAME: "${POKEVAULT_USERNAME:?Create your credentials first}"
+      POKEVAULT_PASSWORD_HASH: "${POKEVAULT_PASSWORD_HASH:?Create your credentials first}"
+      POKEVAULT_SESSION_SECRET: "${POKEVAULT_SESSION_SECRET:?Create your credentials first}"
+      POKEVAULT_ORIGIN: "https://${POKEVAULT_DOMAIN:?Set your domain without https://}"
+      # Only Caddy can reach this private network; the application has no host port.
+      POKEVAULT_TRUST_PROXY: "uniquelocal"
+    networks: [access]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+  caddy:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.caddy
+    pull_policy: build
+    restart: unless-stopped
+    environment:
+      POKEVAULT_DOMAIN: "${POKEVAULT_DOMAIN:?Set your domain without https://}"
+    depends_on:
+      pokevault:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks: [access, public]
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+networks:
+  access:
+    internal: true
+  public:
+volumes:
+  caddy_data:
+  caddy_config:

@@ -3,6 +3,15 @@
 !Dockerfile
 !docker/
 !docker/nginx.conf
+!docker/Dockerfile.caddy
+!docker/Caddyfile
+!server/
+!server/*.js
+!server/*.mjs
+!server/package.json
+!server/package-lock.json
+!server/public/
+!server/public/*
 !dist/
 !dist/*.html
 !dist/*.js
@@ -11,3 +20,5 @@
 !dist/LICENSE
 !dist/sprites/
 !dist/sprites/*.png
+server/node_modules/
+server/tests/

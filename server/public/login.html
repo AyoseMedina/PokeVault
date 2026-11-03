@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#193f36"><meta name="robots" content="noindex,nofollow">
+  <title>PokéVault · Acceso privado</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/auth-assets/login.css">
+  <script type="module" src="/auth-assets/login.js"></script>
+</head>
+<body>
+  <main class="access-shell">
+    <section class="story" aria-labelledby="story-title">
+      <a class="brand" href="/login"><img src="/favicon.svg" alt="" width="44" height="44"><span>PokéVault<small data-text="tagline">TU HOME CLÁSICO</small></span></a>
+      <div class="story-copy"><span class="eyebrow">KANTO · JOHTO · HOENN · SINNOH · TESELIA</span>
+        <h1 id="story-title" data-text="headline">Tus aventuras merecen un hogar.</h1>
+        <p data-text="intro">Tus compañeros de siempre, tus cajas y tu próxima aventura. Entra en tu espacio personal.</p>
+      </div>
+      <div class="vault-art" aria-hidden="true"><div class="orbit one"></div><div class="orbit two"></div><div class="vault"><img src="/favicon.svg" alt="" width="128" height="128"></div><span class="spark first">✧</span><span class="spark second">✦</span><div class="generation">I &nbsp;·&nbsp; II &nbsp;·&nbsp; III &nbsp;·&nbsp; IV &nbsp;·&nbsp; V</div></div>
+      <p class="story-foot" data-text="local">Tus guardados se quedan en tu navegador.</p>
+    </section>
+    <section class="access-panel" aria-labelledby="login-title">
+      <div class="panel-top"><span class="private-mark"><span></span><span data-text="private">ESPACIO PERSONAL</span></span><button class="language" id="language" type="button" aria-label="Switch to English">EN</button></div>
+      <div class="form-wrap"><div class="lock-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5zM12 14v3"/></svg></div>
+        <p class="eyebrow" data-text="welcome">QUÉ BUENO TENERTE DE VUELTA</p>
+        <h2 id="login-title" data-text="title">Entra en tu banco.</h2>
+        <p class="subtitle" data-text="subtitle">Inicia sesión para continuar con tus aventuras.</p>
+        <form id="login-form" method="post" action="/auth/login">
+          <label for="username" data-text="username">Usuario</label>
+          <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="64" required>
+          <label for="password" data-text="password">Contraseña</label>
+          <div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required><button id="show-password" type="button" aria-controls="password" aria-pressed="false" data-text="show">Mostrar</button></div>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+          <button class="submit" id="submit" type="submit" disabled><span data-text="submit">Entrar en PokéVault</span><span aria-hidden="true">→</span></button>
+        </form>
+        <noscript><p>Activa JavaScript para entrar / Enable JavaScript to sign in.</p></noscript>
+        <p class="session-note" data-text="session">La sesión se cierra tras 30 minutos sin actividad.</p>
+        <details><summary data-text="help">¿Necesitas recuperar el acceso?</summary><p data-text="recovery">El propietario puede cambiar las credenciales desde la configuración del servidor. No se envían contraseñas por correo ni se crean cuentas desde esta página.</p></details>
+      </div>
+      <p class="panel-foot" data-text="footer">Un espacio para tu historia. De Kanto a Teselia.</p>
+    </section>
+  </main>
+</body>
+</html>

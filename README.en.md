@@ -12,7 +12,7 @@
 
 A personal bank for collecting, organizing and preparing copies of your generation I–V Pokémon, designed for R36S / ArkOS. **Your save files are processed and stored in your browser.** No save uploads, analytics or JavaScript runtime dependencies.
 
-The code is public and you can host the application on your own computer or server. Private website access is configured through your network or proxy: the application does not include authentication. Files are generated locally and installed on the console manually. The application interface is in Spanish; documentation is available in Spanish and English.
+The code is public and you can host the application on your own computer or server. Docker includes **personal sign-in validated server-side**, and cloud mode adds automatic HTTPS with Caddy. Save files are generated locally and installed on the console manually. The bank interface is in Spanish; sign-in and documentation support Spanish and English. Access-server dependencies are separate from browser code.
 
 **[Get started](GETTING_STARTED.md) · [Docker and Portainer](GETTING_STARTED.md#docker-and-portainer-from-github) · [Changelog](CHANGELOG.en.md) · [Contribute](CONTRIBUTING.md#english)**
 
@@ -26,20 +26,30 @@ The code is public and you can host the application on your own computer or serv
 | Keep backups | Export a portable `.pvault` bank, merge backups, and restore the last 25 organization snapshots. |
 | Install with context | Download a ZIP with originals, output, manifest and manual R36S / ArkOS instructions. |
 | Explore first | Try a demo with synthetic, non-playable data before importing your own saves. |
+| Protect access | ES/EN sign-in, scrypt password hashes, expiring sessions, throttling and logout without deleting the bank. |
 
 ## Quick start
 
 ```bash
 git clone https://github.com/AyoseMedina/PokeVault.git
 cd PokeVault
+```
+
+[Create your credentials](GETTING_STARTED.md#create-your-credentials-once) and save them in `.env` or Portainer. There is no default password. Then:
+
+```bash
 docker compose up -d --build
 ```
 
-Open **http://127.0.0.1:8080** on the computer running Docker. In Portainer, use repository `https://github.com/AyoseMedina/PokeVault`, reference `refs/heads/main` and Compose path `compose.yaml`. The stack targets **Docker Standalone**; the [deployment guide](GETTING_STARTED.md#create-the-stack) explains LAN, VPN and proxy access.
+Open **http://localhost:8080** on the Docker computer.
 
-Without Docker: run `py iniciar.py` on Windows or `python3 iniciar.py` on Linux/macOS and open **http://127.0.0.1:8000**. No package installation is required.
+For Portainer: repository `https://github.com/AyoseMedina/PokeVault`, reference `refs/heads/main`, **Docker Standalone**. Choose `compose.yaml` for local or `compose.cloud.yaml` for cloud. In cloud mode, set `POKEVAULT_DOMAIN` once your domain and DNS are ready; Caddy obtains and renews the certificate. Follow the [deployment guide](GETTING_STARTED.md#create-the-stack).
+
+The original static mode remains available for local development **without sign-in**: run `py iniciar.py` on Windows or `python3 iniciar.py` on Linux/macOS and open **http://127.0.0.1:8000**, without installing packages. Do not expose it to the Internet.
 
 > The bank lives in IndexedDB, not Docker or GitHub. Export a `.pvault` before changing browser, domain, protocol or port; every web origin has its own storage.
+
+Sign-in protects web access; it does not encrypt IndexedDB or separate accounts within one browser profile. See [protections, recovery and limitations](docs/ACCESS.md#english).
 
 ## Games and formats
 
@@ -91,7 +101,7 @@ With Node.js 22 or newer:
 npm test
 ```
 
-The suite contains 62 tests. There is no `npm install` step; generated files go to `.test-output/`. GitHub Actions runs the tests and checks the container build and health. It does not publish the website or a registry image.
+The save suite contains 62 tests and needs no package installation. The access server adds 14 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. GitHub Actions checks both suites, login, logout, Docker and cloud configuration. It does not publish the website or a registry image.
 
 ## Project map
 
@@ -104,7 +114,8 @@ The suite contains 62 tests. There is no `npm install` step; generated files go 
 | `dist/*data.js` | Species, text and conversion tables with documented provenance. |
 | `dist/styles.css`, `dist/sprites/` | Responsive layout and 649 local sprites. |
 | `tests/` | Tests and public reference entities. |
-| `Dockerfile`, `compose.yaml`, `docker/` | Nginx image and Docker / Portainer deployment. |
+| `server/` | Access server, ES/EN screen, credential generator and tests. |
+| `Dockerfile`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Local login and Caddy HTTPS deployment in Docker / Portainer; previous Nginx config retained. |
 | `iniciar.py` | Python server bound to `127.0.0.1`. |
 | `AGENTS.md` | Development and data-protection rules; [English translation](AGENTS.en.md). |
 
@@ -118,6 +129,7 @@ The suite contains 62 tests. There is no `npm install` step; generated files go 
 | Development rules | [Pautas](AGENTS.md) | [Guidelines](AGENTS.en.md) |
 | Contributions | [Guía bilingüe](CONTRIBUTING.md#español) | [Bilingual guide](CONTRIBUTING.md#english) |
 | Test entities and attribution | [Procedencia](tests/fixtures/README.md#español) | [Provenance](tests/fixtures/README.md#english) |
+| Login and security | [Acceso](docs/ACCESS.md#español) | [Access](docs/ACCESS.md#english) |
 
 ## Sources and license
 

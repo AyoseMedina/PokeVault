@@ -1,12 +1,13 @@
-FROM nginx:1.30.6-alpine
-
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY dist/ /usr/share/nginx/html/
-
-USER nginx
+FROM node:24-alpine
+ENV NODE_ENV=production
+ENV POKEVAULT_LISTEN=0.0.0.0
+WORKDIR /app
+COPY server/package.json server/package-lock.json ./server/
+RUN npm --prefix server ci --omit=dev --ignore-scripts && npm cache clean --force
+COPY server/ ./server/
+COPY dist/ ./dist/
+USER node
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
-
-ENTRYPOINT ["nginx"]
-CMD ["-g", "daemon off;"]
+  CMD node -e "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "server/index.js"]

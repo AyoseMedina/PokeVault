@@ -21,16 +21,25 @@ jobs:
           node-version: '22'
       - name: Test / Probar
         run: npm test
-      - name: Build and start / Construir e iniciar
-        run: docker compose -p pokevault-ci up -d --build --wait --wait-timeout 60
-      - name: Check HTTP / Comprobar HTTP
+      - name: Authentication tests / Pruebas de acceso
         run: |
-          curl --fail --silent http://127.0.0.1:8080/healthz | grep -Fx ok
-          curl --fail --silent http://127.0.0.1:8080/app.js | cmp dist/app.js -
-          curl --fail --silent http://127.0.0.1:8080/sprites/649.png | cmp dist/sprites/649.png -
+          npm --prefix server ci --ignore-scripts
+          npm run test:auth
+          node server/tests/docker-smoke.mjs --prepare
+      - name: Build and start / Construir e iniciar
+        run: docker compose --env-file .test-output/auth-ci.env -p pokevault-ci up -d --build --wait --wait-timeout 60
+      - name: Check HTTP / Comprobar HTTP
+        run: node server/tests/docker-smoke.mjs
+      - name: Validate cloud / Validar nube
+        run: |
+          docker compose --env-file .test-output/auth-ci.env -f compose.cloud.yaml -p pokevault-cloud-ci config --quiet
+          docker compose --env-file .test-output/auth-ci.env -f compose.cloud.yaml -p pokevault-cloud-ci build caddy
+          docker compose --env-file .test-output/auth-ci.env -f compose.cloud.yaml -p pokevault-cloud-ci run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Logs / Registros
         if: failure()
-        run: docker compose -p pokevault-ci logs --no-color
+        run: docker compose --env-file .test-output/auth-ci.env -p pokevault-ci logs --no-color
       - name: Cleanup / Limpiar
         if: always()
-        run: docker compose -p pokevault-ci down
+        run: |
+          docker compose --env-file .test-output/auth-ci.env -p pokevault-ci down
+          docker compose --env-file .test-output/auth-ci.env -f compose.cloud.yaml -p pokevault-cloud-ci down -v

@@ -12,7 +12,7 @@
 
 Un banco personal para reunir, organizar y preparar copias de tus Pokémon de generaciones I–V, pensado para R36S / ArkOS. **Tus guardados se procesan y conservan en tu navegador.** No se suben partidas, no hay analítica ni dependencias JavaScript de ejecución.
 
-El código es público y la aplicación se puede alojar en tu propio equipo o servidor. El acceso privado al sitio se configura en tu red o proxy: la aplicación no incluye autenticación. Los archivos se generan localmente y se instalan manualmente en la consola. La interfaz está en español; la documentación está disponible en español e inglés.
+El código es público y la aplicación se puede alojar en tu propio equipo o servidor. Docker incluye un **login personal validado en el servidor**, y el modo nube añade HTTPS automático con Caddy. Los archivos de guardado se generan localmente y se instalan manualmente en la consola. La interfaz del banco está en español; el login y la documentación están disponibles en español e inglés. Las dependencias del servidor de acceso están separadas del código del navegador.
 
 **[Empezar](EMPEZAR.md) · [Docker y Portainer](EMPEZAR.md#docker-y-portainer-desde-github) · [Historial](CHANGELOG.md) · [Contribuir](CONTRIBUTING.md)**
 
@@ -26,20 +26,30 @@ El código es público y la aplicación se puede alojar en tu propio equipo o se
 | Guardar respaldos | Exportar un banco portátil `.pvault`, fusionar respaldos y recuperar los últimos 25 estados de organización. |
 | Instalar con contexto | Descargar un ZIP con originales, resultado, manifiesto y guía manual para R36S / ArkOS. |
 | Explorar primero | Usar una demo con datos sintéticos no jugables antes de importar tus partidas. |
+| Proteger el acceso | Login ES/EN, contraseñas con hash scrypt, sesiones con caducidad, límites de intentos y cierre de sesión sin borrar el banco. |
 
 ## Inicio rápido
 
 ```bash
 git clone https://github.com/AyoseMedina/PokeVault.git
 cd PokeVault
+```
+
+[Crea tus credenciales](EMPEZAR.md#crear-tus-credenciales-una-vez) y guárdalas en `.env` o en Portainer. No hay contraseña por defecto. Después:
+
+```bash
 docker compose up -d --build
 ```
 
-Abre **http://127.0.0.1:8080** en el equipo donde ejecutas Docker. Para Portainer, usa el repositorio `https://github.com/AyoseMedina/PokeVault`, referencia `refs/heads/main` y ruta Compose `compose.yaml`. El stack está preparado para **Docker Standalone**; la [guía de despliegue](EMPEZAR.md#crear-el-stack) explica cómo acceder desde tu LAN, VPN o proxy.
+Abre **http://localhost:8080** en el equipo Docker.
 
-Sin Docker: ejecuta `py iniciar.py` en Windows o `python3 iniciar.py` en Linux/macOS y abre **http://127.0.0.1:8000**. No hace falta instalar paquetes.
+Para Portainer: repositorio `https://github.com/AyoseMedina/PokeVault`, referencia `refs/heads/main` y **Docker Standalone**. Elige `compose.yaml` para local o `compose.cloud.yaml` para nube. En nube, añade `POKEVAULT_DOMAIN` cuando tengas dominio y DNS; Caddy obtiene y renueva el certificado. Sigue la [guía de despliegue](EMPEZAR.md#crear-el-stack).
+
+El modo estático original se conserva para desarrollo local **sin login**: `py iniciar.py` en Windows o `python3 iniciar.py` en Linux/macOS, en **http://127.0.0.1:8000**, sin instalar paquetes. No lo expongas a Internet.
 
 > El banco está en IndexedDB, no en Docker ni en GitHub. Exporta un `.pvault` antes de cambiar de navegador, dominio, protocolo o puerto; cada origen web tiene su propio almacenamiento.
+
+El login protege el acceso web; no cifra IndexedDB ni separa cuentas dentro de un mismo perfil de navegador. Consulta [protecciones, recuperación y límites](docs/ACCESS.md).
 
 ## Juegos y formatos
 
@@ -88,7 +98,7 @@ Con Node.js 22 o posterior:
 npm test
 ```
 
-La suite contiene 62 pruebas. No requiere `npm install`; los archivos generados van a `.test-output/`. GitHub Actions ejecuta las pruebas y comprueba la construcción y salud del contenedor. No publica la web ni una imagen en un registro.
+La suite de guardados contiene 62 pruebas y no requiere instalar paquetes. El servidor de acceso tiene 14 pruebas adicionales: instala con `npm --prefix server ci --ignore-scripts` y ejecuta `npm run test:auth`. Los archivos generados van a `.test-output/`. GitHub Actions comprueba ambas suites, login, logout, Docker y la configuración de nube. No publica la web ni una imagen en un registro.
 
 ## Mapa del proyecto
 
@@ -101,7 +111,8 @@ La suite contiene 62 pruebas. No requiere `npm install`; los archivos generados 
 | `dist/*data.js` | Tablas de especies, texto y conversión con procedencia documentada. |
 | `dist/styles.css`, `dist/sprites/` | Diseño adaptable y 649 sprites locales. |
 | `tests/` | Pruebas y entidades públicas de referencia. |
-| `Dockerfile`, `compose.yaml`, `docker/` | Imagen Nginx y despliegue en Docker / Portainer. |
+| `server/` | Servidor de acceso, pantalla ES/EN, generador de credenciales y pruebas. |
+| `Dockerfile`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Login local y despliegue HTTPS con Caddy en Docker / Portainer; configuración Nginx anterior conservada. |
 | `iniciar.py` | Servidor Python limitado a `127.0.0.1`. |
 | `AGENTS.md` | Reglas de desarrollo y protección de datos; [traducción inglesa](AGENTS.en.md). |
 
@@ -115,6 +126,7 @@ La suite contiene 62 pruebas. No requiere `npm install`; los archivos generados 
 | Pautas de desarrollo | [Pautas](AGENTS.md) | [Guidelines](AGENTS.en.md) |
 | Contribuciones | [Guía bilingüe](CONTRIBUTING.md#español) | [Bilingual guide](CONTRIBUTING.md#english) |
 | Entidades de pruebas y atribución | [Procedencia](tests/fixtures/README.md#español) | [Provenance](tests/fixtures/README.md#english) |
+| Login y seguridad | [Acceso](docs/ACCESS.md#español) | [Access](docs/ACCESS.md#english) |
 
 ## Fuentes y licencia
 

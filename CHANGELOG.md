@@ -5,6 +5,27 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Login personal y modos local/nube
+
+- Añadido servidor de acceso con Express, pantalla ES/EN, generador de
+  credenciales, hash scrypt y sesiones con cookies protegidas y caducidad.
+- Protegidos los recursos de la aplicación; añadidos límites de intentos,
+  validación de origen/Host, CSRF, CSP y cierre de sesión entre pestañas.
+- Docker requiere credenciales propias y falla cerrado si faltan. Local
+  permanece en loopback; nube añade Caddy y certificados HTTPS automáticos
+  cuando se configura un dominio con DNS y puertos disponibles.
+- Conservado el modo estático Python para desarrollo local sin login y la
+  configuración Nginx anterior como referencia. No se borran datos del banco.
+- El botón de recarga tras un error de inicio usa un listener compatible con
+  CSP en lugar de código en línea. Lectores, conversiones y persistencia intactos.
+- Añadidas 14 pruebas del servidor de acceso y comprobación HTTP de Docker.
+  Documentación de configuración, recuperación y límites actualizada en ES/EN.
+- Superadas 62 pruebas de guardados y 14 de acceso; comprobados login, archivos
+  protegidos y logout en Docker local y en HTTPS con Caddy y una CA de prueba.
+- La herramienta de ordenador no autorizó el uso de Edge: la revisión visual
+  y el flujo completo de exportación en navegador quedan pendientes. No se
+  han probado una consola real ni certificados públicos sin dominio configurado.
+
 ## 2026-11-03 · Repositorio público y documentación bilingüe
 
 - Preparada la presentación de AyoseMedina/PokeVault con cabecera SVG propia,

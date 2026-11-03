@@ -22,6 +22,8 @@ ROM, respaldos `.pvault`, credenciales ni datos de sesión.** Usa fixtures
 sintéticas o entidades públicas con su fuente y licencia documentadas.
 
 Las nuevas rutas necesitan una especificación verificada y pruebas del resultado.
+Para cambios del login, instala `npm --prefix server ci --ignore-scripts` y
+ejecuta `npm run test:auth`. Consulta [protecciones y alcance](docs/ACCESS.md).
 No elimines restricciones para hacer pasar un caso no compatible. Una copia de
 datos no debe borrar el origen ni activar evoluciones por intercambio.
 
@@ -45,5 +47,7 @@ backups, credentials or session data.** Use synthetic fixtures or public entitie
 with documented sources and licenses.
 
 New routes require a verified specification and tests of the converted output.
+For login changes, run `npm --prefix server ci --ignore-scripts` and
+`npm run test:auth`. See [protections and scope](docs/ACCESS.md#english).
 Do not remove restrictions just to allow an unsupported case. A data copy must
 not delete the source or trigger trade evolutions.

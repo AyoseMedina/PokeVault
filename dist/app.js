@@ -293,4 +293,4 @@ async function init(){
   window.addEventListener('hashchange',()=>{const p=location.hash.slice(1);if(['bank','saves','transfers','backups','guide'].includes(p)&&p!==page){page=p;render();}});
   render();
 }
-init().catch(e=>{$('#app').innerHTML=`<div class="empty-state"><h2>No se pudo abrir el banco</h2><p>${esc(errorText(e))}</p><button class="btn btn-light" onclick="location.reload()">Recargar</button></div>`;});
+init().catch(e=>{$('#app').innerHTML=`<div class="empty-state"><h2>No se pudo abrir el banco</h2><p>${esc(errorText(e))}</p><button class="btn btn-light" id="retry-init">Recargar</button></div>`;$('#retry-init').addEventListener('click',()=>location.reload());});

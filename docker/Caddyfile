@@ -1,0 +1,3 @@
+{$POKEVAULT_DOMAIN} {
+	reverse_proxy pokevault:8080
+}

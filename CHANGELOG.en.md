@@ -5,6 +5,27 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Personal sign-in and local/cloud modes
+
+- Added an Express access server, ES/EN screen, credential generator, scrypt
+  hashing and expiring sessions with protected cookies.
+- Protected application resources; added throttling, Origin/Host validation,
+  CSRF, CSP and logout across tabs.
+- Docker requires personal credentials and fails closed when missing. Local
+  stays on loopback; cloud adds Caddy and automatic HTTPS certificates once a
+  domain, DNS and reachable ports are configured.
+- Preserved static Python mode for local development without sign-in and the
+  previous Nginx config for reference. Bank data is not deleted.
+- Startup-error reload uses a CSP-compatible event listener instead of inline
+  code. Readers, conversions and persistence remain intact.
+- Added 14 access-server tests and an HTTP Docker check. Updated setup,
+  recovery and security-scope documentation in ES/EN.
+- Passed 62 save tests and 14 access tests; verified login, protected assets
+  and logout in local Docker and over HTTPS with Caddy and a test CA.
+- Computer Use did not authorize Edge access: visual review and the full
+  browser export flow remain pending. No physical console or public-domain
+  certificate issuance has been tested without a configured domain.
+
 ## 2026-11-03 · Public repository and bilingual documentation
 
 - Prepared the AyoseMedina/PokeVault presentation with an original SVG banner,

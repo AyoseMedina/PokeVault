@@ -1,4 +1,4 @@
-# Portainer: Docker Standalone > Stacks > Add stack > Git Repository.
+# Local: http://localhost:8080. Cloud: use compose.cloud.yaml instead.
 services:
   pokevault:
     build:
@@ -6,11 +6,17 @@ services:
       dockerfile: Dockerfile
     pull_policy: build
     restart: unless-stopped
+    environment:
+      POKEVAULT_USERNAME: "${POKEVAULT_USERNAME:?Create your credentials first}"
+      POKEVAULT_PASSWORD_HASH: "${POKEVAULT_PASSWORD_HASH:?Create your credentials first}"
+      POKEVAULT_SESSION_SECRET: "${POKEVAULT_SESSION_SECRET:?Create your credentials first}"
+      POKEVAULT_ORIGIN: "${POKEVAULT_ORIGIN:-http://localhost:${POKEVAULT_PORT:-8080}}"
     ports:
-      - "${POKEVAULT_BIND_IP:-127.0.0.1}:${POKEVAULT_PORT:-8080}:8080"
+      - "127.0.0.1:${POKEVAULT_PORT:-8080}:8080"
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    init: true
     cap_drop:
       - ALL
     security_opt:
