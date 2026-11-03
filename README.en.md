@@ -2,9 +2,9 @@
 
 <p align="center"><a href="README.md">Español</a> · <strong>English</strong></p>
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-193f36" alt="GPL-3.0 license"></a>
-  <img src="https://img.shields.io/badge/Pok%C3%A9mon-generations_I%E2%80%93V-a5d8b7?labelColor=193f36" alt="Generations I through V">
-  <a href="GETTING_STARTED.md#docker-and-portainer-from-github"><img src="https://img.shields.io/badge/deploy-Docker_%2B_Portainer-193f36" alt="Docker and Portainer"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-191b22" alt="GPL-3.0 license"></a>
+  <img src="https://img.shields.io/badge/Pok%C3%A9mon-generations_I%E2%80%93V-ef4054?labelColor=191b22" alt="Generations I through V">
+  <a href="GETTING_STARTED.md#docker-and-portainer-from-github"><img src="https://img.shields.io/badge/deploy-Docker_%2B_Portainer-191b22" alt="Docker and Portainer"></a>
 </p>
 
 # PokéVault · Your classic HOME
@@ -19,13 +19,16 @@ The code is public and you can host the application on your own computer or serv
 
 | Feature | Description |
 | --- | --- |
-| Import adventures | Read parties and boxes from 13 games, check structures and checksums, and preserve original bytes with SHA-256. |
+| Import adventures | Read parties and boxes from 16 games, check structures and checksums, and preserve original bytes with SHA-256. |
 | Organize your bank | Create virtual boxes with 30 slots, search, filter, sort, favorite Pokémon and add notes. Bank organization does not alter the save's boxes. |
 | Prepare copies | Select PC Pokémon, review the route and changes, and write only to empty slots in a new save file. |
 | Keep backups | Export a portable `.pvault` bank, merge backups, and restore the last 25 organization snapshots. |
 | Install with context | Download a ZIP with originals, output, manifest and manual R36S / ArkOS instructions. |
 | Explore first | Try a demo with synthetic, non-playable data before importing your own saves. |
+| Read the Pokédex | Actual seen/caught flags per save, search/filter and exact-edition descriptions; [coverage and language limitations](docs/POKEDEX.md#english). |
 | Protect access | ES/EN sign-in, scrypt password hashes, expiring sessions, throttling and logout without deleting the bank. |
+
+The interface and sign-in use a red, white and charcoal Poké Ball palette.
 
 ## Quick start
 
@@ -56,11 +59,13 @@ Sign-in protects web access; it does not encrypt IndexedDB or separate accounts 
 | --- | --- | --- | --- |
 | I | International Yellow | 32 KiB | 12 |
 | II | International Crystal | 32 KiB | 14 |
-| III | International FireRed and Emerald | 128 KiB | 14 |
+| III | International Ruby, Sapphire, Emerald, FireRed and LeafGreen | 128 KiB | 14 |
 | IV | Diamond, Pearl, Platinum, HeartGold and SoulSilver | 512 KiB | 18 |
 | V | Black, White, Black 2 and White 2 | 512 KiB | 24 |
 
 Party Pokémon are also read. DS supports raw SAV/SRM and DSV with recognized 40- or 122-byte footers; the complete file is retained. ROM hacks, savestates, compressed No$GBA batteries and GB RTC tails are unsupported.
+
+Pokédex descriptions are reference text bundled locally, not extracted from the save. The pinned source has English text for these editions but no Spanish; the fallback is explicitly labeled and never substitutes another game.
 
 ## Copy exports
 
@@ -73,7 +78,8 @@ Every operation preserves source Pokémon and saves and produces a new file. Cop
 | III→IV | Pal Park: PID, ID32, EXP, EVs, IVs, Gen III ability, nature, ribbons and names; location 55, explicit date, friendship 70 and Gen IV PP. |
 | IV→V | Poké Transfer: PID, IVs, nature, names and data; location 30001, explicit date, friendship 70 and Gen V PP. |
 | III→V | Chained III→IV→V conversion. |
-| II→III, routes crossing that gap, and backward transfers | Blocked. |
+| Crystal II→III | Optional custom conversion to Ruby/Sapphire/Emerald/FireRed/LeafGreen; generated fields and adapted stats require review. [Policy and limits](docs/CUSTOM_TRANSFER.md#english). |
+| Direct II→IV/V and backward transfers | Blocked. |
 
 Eggs, Pokémon outside the PC, source held items, quarantined destinations, duplicates, occupied slots and incompatible languages are blocked. Conversions reject HMs instead of deleting them, fateful-encounter events, unsupported forms and lossy text conversions. This is a conservative policy, not competitive legality analysis. GTS, Day Care, Pokéwalker and Battle Box data are not extracted.
 
@@ -100,7 +106,7 @@ With Node.js 22 or newer:
 npm test
 ```
 
-The save suite contains 62 tests and needs no package installation. The access server adds 14 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. Checks run locally; there are no GitHub Actions workflows. Portainer builds directly from Git.
+The save suite contains 89 tests and needs no package installation. The access server adds 14 tests: install with `npm --prefix server ci --ignore-scripts`, then run `npm run test:auth`. Generated files go to `.test-output/`. Checks run locally; there are no GitHub Actions workflows. Portainer builds directly from Git.
 
 ## Project map
 
@@ -113,6 +119,7 @@ The save suite contains 62 tests and needs no package installation. The access s
 | `dist/*data.js` | Species, text and conversion tables with documented provenance. |
 | `dist/styles.css`, `dist/sprites/` | Responsive layout and 649 local sprites. |
 | `tests/` | Tests and public reference entities. |
+| `dist/pokedex*.js`, `dist/custom-transfer*.js` | Read-only Pokédex, offline descriptions and explicitly enabled Crystal → GBA conversion. |
 | `server/` | Access server, ES/EN screen, credential generator and tests. |
 | `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Portainer with existing Nginx, local sign-in and optional Caddy; previous Nginx config retained. |
 | `iniciar.py` | Python server bound to `127.0.0.1`. |

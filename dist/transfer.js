@@ -12,7 +12,7 @@ function dateParts(date){require(/^20\d\d-\d\d-\d\d$/.test(date),'Fecha de trans
 export function routeFor(source,target){
   require(Number.isInteger(source)&&Number.isInteger(target)&&source>=1&&source<=5&&target>=1&&target<=5,'Generación no compatible.');
   require(target>=source,'No se permiten envíos a una generación anterior.');
-  require(source===target||(source===1&&target===2)||(source===3&&[4,5].includes(target))||(source===4&&target===5),'No existe una ruta compatible entre estas generaciones. El salto II → III y las rutas que lo atraviesan están bloqueados.');
+  require(source===target||(source===1&&target===2)||(source===3&&[4,5].includes(target))||(source===4&&target===5),'No existe una ruta compatible entre estas generaciones. II → III solo está disponible en el modo personalizado Cristal → GBA; las rutas directas II → IV/V siguen bloqueadas.');
   return source===3&&target===5?'III → IV → V':`${roman[source]} → ${roman[target]}`;
 }
 export function entityIdentity(p){

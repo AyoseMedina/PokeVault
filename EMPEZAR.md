@@ -244,6 +244,19 @@ Más detalles: [protecciones y alcance del login](docs/ACCESS.md),
 [Portainer desde Git](https://docs.portainer.io/user/docker/stacks/add) y
 [HTTPS automático de Caddy](https://caddyserver.com/docs/automatic-https).
 
+## Pokédex y Cristal → GBA
+
+Después de entrar, importa tus partidas. **Pokédex** permite elegir un guardado
+para consultar sus marcas reales de vistos/capturados y descripciones de esa
+edición. Los textos son referencias incluidas localmente; se indica inglés cuando
+falta español. Consulta [Pokédex](docs/POKEDEX.md).
+
+Para copiar de Cristal a Rubí, Zafiro, Esmeralda, Rojo Fuego o Verde Hoja, importa
+ambos guardados y selecciona Pokémon del PC. En Transferencias elige el destino
+GBA y activa **Cristal → GBA personalizada**. Revisa identidad generada, DVs/IVs,
+entrenamiento y procedencia sintética antes de exportar. El ZIP conserva ambos
+originales. Consulta la [política personalizada y sus límites](docs/CUSTOM_TRANSFER.md).
+
 ## Trasladar tu banco
 
 Los guardados se conservan en el almacenamiento del navegador. El banco local

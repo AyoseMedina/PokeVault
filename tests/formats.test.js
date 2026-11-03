@@ -9,7 +9,7 @@ import { FORMAT_DATA as F } from '../dist/formats-data.js';
 import { reference, encryptedReference, fixtureLayouts, fixtureG4, fixtureG5, fixtureYellow, refreshG4, refreshG5, refreshYellow, wrapDSV } from './fixtures/builders.js';
 const dsGames=['diamond','pearl','platinum','heartgold','soulsilver','black','white','black2','white2'];
 test('all nine main-series DS titles and Yellow have registered importers',()=>{
- assert.equal(dsGames.length,9);for(const game of [...dsGames,'yellow'])assert.ok(GAMES[game]);assert.equal(Object.keys(GAMES).length,13);assert.equal(DATA.names[649],'Genesect');assert.equal(DATA.moves.length,560);
+ assert.equal(dsGames.length,9);for(const game of [...dsGames,'yellow'])assert.ok(GAMES[game]);assert.equal(Object.keys(GAMES).length,16);assert.equal(DATA.names[649],'Genesect');assert.equal(DATA.moves.length,560);
 });
 test('CRC16-CCITT matches the independent standard check value',()=>assert.equal(crc16CCITT(new TextEncoder().encode('123456789')),0x29B1));
 test('upstream PK4 and PK5 decode exactly through all 32 shuffle selectors',()=>{

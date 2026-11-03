@@ -5,6 +5,29 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Pokédex, Cristal → GBA y tema Pokémon
+
+- Añadida Pokédex de solo lectura por partida, con contadores nacionales reales
+  de vistos/capturados, filtros, búsqueda, paginación y aviso de inconsistencias.
+  Se usa el bloque activo validado; no se deducen capturas de las cajas ni se
+  cambian los guardados o el esquema `.pvault`.
+- Incluidas descripciones de la edición en las fichas, disponibles sin Internet.
+  La fuente fijada tiene inglés para estas ediciones, pero no español; se muestra
+  el idioma explícitamente sin sustituir textos por los de otro juego.
+- Añadidos Rubí, Zafiro y Verde Hoja: 16 juegos compatibles. Cristal → los cinco
+  juegos GBA tiene una conversión personalizada no oficial con activación,
+  política v1 documentada, revisión de valores y detalles en el manifiesto.
+  Conserva originales y bloqueos; genera identidad determinista, adapta DVs y
+  entrenamiento y declara la procedencia sintética. No certifica legalidad.
+- Sustituida la paleta verde por rojo, blanco y negro en aplicación, login,
+  favicon y cabecera del repositorio; se conservan las funciones existentes.
+- Superadas 89 pruebas de lógica/datos y 14 de acceso. Comprobados en Chromium
+  de pruebas aislado: login, importación, Pokédex, ficha, selección, prevalidación,
+  revisión personalizada, respaldo, ZIP, persistencia tras recarga y vista móvil.
+  Verificados los originales, CRC ZIP, manifiesto y SHA-256 del paquete generado.
+- No se han utilizado partidas personales ni ROM, ni se ha validado una consola
+  física. La conexión del Nginx del usuario permanece a su cargo.
+
 ## 2026-11-03 · Portainer con Nginx existente
 
 - Añadido `docker-compose.yml` que construye solo PokéVault desde Git y expone

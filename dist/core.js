@@ -1,10 +1,15 @@
 import { DATA } from './data.js';
+import { readPokedex } from './pokedex.js';
+import { convertCrystalToGBA } from './custom-transfer.js';
 import { parseYellow, parseNDS, DS_LAYOUTS } from './formats.js';
 import { preparePortableTransfer, buildPortableTransfer } from './transfer.js';
 
 export const GAMES = {
   crystal: {name:'Cristal', generation:2, region:'Johto', color:'#8c77cb', icon:245},
   firered: {name:'Rojo Fuego', generation:3, region:'Kanto', color:'#dc795d', icon:6},
+  leafgreen: {name:'Verde Hoja', generation:3, region:'Kanto', color:'#61965b', icon:3},
+  ruby: {name:'Rubí', generation:3, region:'Hoenn', color:'#bc5962', icon:383},
+  sapphire: {name:'Zafiro', generation:3, region:'Hoenn', color:'#537bbb', icon:382},
   emerald: {name:'Esmeralda', generation:3, region:'Hoenn', color:'#388f72', icon:384},
   yellow: {name:'Amarillo', generation:1, region:'Kanto', color:'#c6a134', icon:25},
   diamond: {name:'Diamante', generation:4, region:'Sinnoh', color:'#6597c2', icon:483},
@@ -51,7 +56,7 @@ export function sha256Fallback(bytes){
   }return h.map(v=>v.toString(16).padStart(8,'0')).join('');
 }
 export function decode3(b,jp=false){let s='';for(const c of b){if(c===255)break;s+=(jp?DATA.g3jp:DATA.g3chars)[c]||'?';}return s.replace(/\0/g,'').trim();}
-export function decode2(b,lang='es'){let s='';const t=DATA.g2chars[lang]||DATA.g2chars.es;for(const c of b){if(c===0x50)break;s+=t[c]||'?';}return s.replace(/\0/g,'').trim();}
+export function decode2(b,lang='es'){let s='';const t=DATA.g2chars[{it:'es',de:'fr'}[lang]||lang]||DATA.g2chars.es;for(const c of b){if(c===0x50)break;s+=t[c]||'?';}return s.replace(/\0/g,'').trim();}
 export function encode3(str,len){const b=new Uint8Array(len).fill(255);[...str].slice(0,len-1).forEach((c,i)=>{const v=DATA.g3chars.indexOf(c);b[i]=v<0?0:v;});return b;}
 export function encode2(str,len){const b=new Uint8Array(len).fill(0x50);[...str].slice(0,len-1).forEach((c,i)=>{const v=DATA.g2chars.es.indexOf(c);b[i]=v<0?0x7f:v;});return b;}
 export function checksum32(b,length=b.length){let sum=0;for(let i=0;i<length;i+=4)sum=(sum+u32(b,i))>>>0;return ((sum&65535)+(sum>>>16))&65535;}
@@ -95,7 +100,7 @@ export function parsePK3(raw,location={}){
   const valid=present&&species>=1&&species<=386&&checksum16(plain)===u16(raw,28)&&(raw[19]&1)===0;
   return {...location,generation:3,species,name:DATA.names[species]||'Datos no válidos',nickname:decode3(raw.subarray(8,18),raw[18]===1),ot:decode3(raw.subarray(20,27),raw[18]===1),tid:oid&65535,pid,language:raw[18],level:levelFrom(u32(plain,4),species),exp:u32(plain,4),heldItem:u16(plain,2),moves:[0,1,2,3].map(i=>u16(plain,12+i*2)),ivs:[0,1,2,3,4,5].map(i=>(ivWord>>>(5*i))&31),shiny:((pid&65535)^(pid>>>16)^(oid&65535)^(oid>>>16))<8,egg:!!(ivWord&0x40000000),valid,raw:raw.slice(0,80),fingerprint:`3-${pid}-${oid}-${internal}`,types:DATA.types[species]||[1]};
 }
-function sectionSizes(game){return [game==='emerald'?0xF2C:0xF24,CHUNK,CHUNK,CHUNK,game==='emerald'?0xF08:0xEE8,...Array(8).fill(CHUNK),0x7D0];}
+function sectionSizes(game){const rs=['ruby','sapphire'].includes(game);return [rs?0x890:game==='emerald'?0xF2C:0xF24,CHUNK,CHUNK,CHUNK,rs?0xC40:game==='emerald'?0xF08:0xEE8,...Array(8).fill(CHUNK),0x7D0];}
 function inspectSlot(b,slot,game){
   const sectors=Array(14).fill(null), errors=[], counts=[];
   for(let n=0;n<14;n++){
@@ -132,8 +137,8 @@ export function parseG3(b,game){
       if(pk)records.push(pk);
     }
   }
-  const partyCountOffset=game==='emerald'?0x234:0x34, partyOffset=partyCountOffset+4, partyCount=u32(large,partyCountOffset);
-  assert(partyCount<=6,'Equipo no válido. Comprueba si el guardado es de Esmeralda o Rojo Fuego original.');
+  const partyCountOffset=['firered','leafgreen'].includes(game)?0x34:0x234, partyOffset=partyCountOffset+4, partyCount=u32(large,partyCountOffset);
+  assert(partyCount<=6,'Equipo no válido. Comprueba la edición del guardado GBA original.');
   for(let slot=0;slot<partyCount;slot++){
     const pk=parsePK3(large.subarray(partyOffset+slot*100,partyOffset+slot*100+80),{box:-1,slot,location:'party',boxName:'Equipo'});
     if(pk)records.push(pk);
@@ -168,20 +173,20 @@ export function parseG2(b,language='es'){
   }
   records.push(...readList2(b,0x2865,6,true,language,{box:-1,location:'party',boxName:'Equipo'}));
   const invalid=records.filter(p=>!p.valid).length;
-  return {generation:2,game:'crystal',trainer:decode2(b.subarray(0x200B,0x2013),language),tid:be16(b,0x2009),records,boxes,language,checks:[{label:'Tamaño de batería',ok:true,detail:'32 KiB'},{label:'Checksum principal',ok:true,detail:'Verificado'},{label:'Listas de cajas y equipo',ok:true,detail:'15 / 15'},{label:'Estructuras Pokémon',ok:invalid===0,detail:invalid?`${invalid} en cuarentena`:`${records.length} verificadas`}],warnings:['Cristal permite copias entre partidas de generación II y recibir desde Amarillo, con respaldo. No hay ruta compatible II → III.','La suma principal de Cristal no cubre todas las cajas; las listas se comprueban por estructura.']};
+  return {generation:2,game:'crystal',trainer:decode2(b.subarray(0x200B,0x2013),language),tid:be16(b,0x2009),records,boxes,language,checks:[{label:'Tamaño de batería',ok:true,detail:'32 KiB'},{label:'Checksum principal',ok:true,detail:'Verificado'},{label:'Listas de cajas y equipo',ok:true,detail:'15 / 15'},{label:'Estructuras Pokémon',ok:invalid===0,detail:invalid?`${invalid} en cuarentena`:`${records.length} verificadas`}],warnings:['Cristal permite copias entre partidas de generación II y recibir desde Amarillo, con respaldo. Cristal → GBA requiere activar la conversión personalizada no oficial y revisar sus cambios.','La suma principal de Cristal no cubre todas las cajas; las listas se comprueban por estructura.']};
 }
 export function parseSave(bytes,game,language='es'){
   const b=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
   assert(GAMES[game],'Selecciona un juego compatible.');
-  if(game==='yellow')return parseYellow(b,language,levelFrom);
-  if(DS_LAYOUTS[game])return parseNDS(b,game,levelFrom);
-  return game==='crystal'?parseG2(b,language):parseG3(b,game);
+  const parsed=game==='yellow'?parseYellow(b,language,levelFrom):DS_LAYOUTS[game]?parseNDS(b,game,levelFrom):game==='crystal'?parseG2(b,language):parseG3(b,game);
+  parsed.pokedex=readPokedex(b,game,parsed);
+  return parsed;
 }
 
 function prepareGBA(destination,selected,targetBox){
   assert(destination&&destination.bytes,'Importa una partida de destino.');
   assert(!destination.demo,'La demo no es una partida jugable. Importa tus guardados para exportar.');
-  assert(GAMES[destination.game]?.generation===3,'Este juego solo admite importación, consulta y planes manuales. La escritura automática está limitada a Rojo Fuego y Esmeralda.');
+  assert(GAMES[destination.game]?.generation===3,'El destino debe ser una partida compatible de generación III.');
   assert(Number.isInteger(targetBox)&&targetBox>=0&&targetBox<14,'Caja de destino no válida.');
   assert(selected.length>0&&selected.length<=30,'Selecciona entre 1 y 30 Pokémon.');
   const parsed=parseSave(destination.bytes,destination.game), seen=new Set(parsed.records.map(p=>p.fingerprint));
@@ -229,12 +234,24 @@ function buildGBA(destination,selected,targetBox){
 }
 
 const transferAPI=()=>({parseSave,parsePK3,decrypt3,decode3,levelFrom,checksum16,GAMES});
+function prepareGBAInputs(destination,selected,options){
+  const conversions=selected.map(p=>p.generation===2?convertCrystalToGBA(p,destination.game,{parsePK3,encrypt3,levelFrom,expFor},options):null);
+  return {conversions,pokemon:selected.map((p,i)=>conversions[i]?.pokemon||p)};
+}
+function decorateGBA(result,selected,conversions){
+  const custom=conversions.some(Boolean);
+  return {...result,route:custom?'II → III · personalizada':'III → III',
+    customConversion:custom,
+    notes:custom?['Conversión personalizada PokéVault v1, no oficial. No certifica legalidad competitiva. Los originales se conservan íntegros.',...conversions.flatMap(c=>c?.notes||[])]:['Copia exacta de Pokémon GBA sin objetos equipados.'],
+    placements:result.placements.map((placement,i)=>conversions[i]?{...placement,pokemon:selected[i],raw:conversions[i].raw,conversion:conversions[i].notes,customDetails:conversions[i].details}:placement)};
+}
 export function prepareTransfer(destination,selected,targetBox,options={}){
-  if(GAMES[destination?.game]?.generation===3){const result=prepareGBA(destination,selected,targetBox);return {...result,route:'III → III',notes:['Copia exacta de Pokémon GBA sin objetos equipados.']};}
+  if(GAMES[destination?.game]?.generation===3){const {pokemon,conversions}=prepareGBAInputs(destination,selected,options);return decorateGBA(prepareGBA(destination,pokemon,targetBox),selected,conversions);}
   return preparePortableTransfer(destination,selected,targetBox,transferAPI(),options);
 }
 export function buildTransfer(destination,selected,targetBox,options={}){
-  return GAMES[destination?.game]?.generation===3?buildGBA(destination,selected,targetBox):buildPortableTransfer(destination,selected,targetBox,transferAPI(),options);
+  if(GAMES[destination?.game]?.generation===3){const {pokemon,conversions}=prepareGBAInputs(destination,selected,options);return decorateGBA(buildGBA(destination,pokemon,targetBox),selected,conversions);}
+  return buildPortableTransfer(destination,selected,targetBox,transferAPI(),options);
 }
 
 const crcTable=Array.from({length:256},(_,n)=>{let c=n;for(let i=0;i<8;i++)c=(c&1)?0xEDB88320^(c>>>1):c>>>1;return c>>>0;});

@@ -2,9 +2,9 @@
 
 <p align="center"><strong>Español</strong> · <a href="README.en.md">English</a></p>
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-193f36" alt="Licencia GPL-3.0"></a>
-  <img src="https://img.shields.io/badge/Pok%C3%A9mon-generaciones_I%E2%80%93V-a5d8b7?labelColor=193f36" alt="Generaciones I a V">
-  <a href="EMPEZAR.md#docker-y-portainer-desde-github"><img src="https://img.shields.io/badge/despliegue-Docker_%2B_Portainer-193f36" alt="Docker y Portainer"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-191b22" alt="Licencia GPL-3.0"></a>
+  <img src="https://img.shields.io/badge/Pok%C3%A9mon-generaciones_I%E2%80%93V-ef4054?labelColor=191b22" alt="Generaciones I a V">
+  <a href="EMPEZAR.md#docker-y-portainer-desde-github"><img src="https://img.shields.io/badge/despliegue-Docker_%2B_Portainer-191b22" alt="Docker y Portainer"></a>
 </p>
 
 # PokéVault · Tu HOME clásico
@@ -19,13 +19,16 @@ El código es público y la aplicación se puede alojar en tu propio equipo o se
 
 | Función | Descripción |
 | --- | --- |
-| Importar aventuras | Leer equipo y cajas de 13 juegos, comprobar estructura y checksums y conservar los bytes originales con SHA-256. |
+| Importar aventuras | Leer equipo y cajas de 16 juegos, comprobar estructura y checksums y conservar los bytes originales con SHA-256. |
 | Organizar tu banco | Crear cajas virtuales de 30 casillas, buscar, filtrar, ordenar, marcar favoritos y añadir notas. La organización no altera las cajas de la partida. |
 | Preparar copias | Elegir Pokémon del PC, revisar ruta y cambios y escribir solo en casillas libres de un guardado nuevo. |
 | Guardar respaldos | Exportar un banco portátil `.pvault`, fusionar respaldos y recuperar los últimos 25 estados de organización. |
 | Instalar con contexto | Descargar un ZIP con originales, resultado, manifiesto y guía manual para R36S / ArkOS. |
 | Explorar primero | Usar una demo con datos sintéticos no jugables antes de importar tus partidas. |
+| Consultar la Pokédex | Marcas reales de vistos/capturados por partida, búsqueda, filtros y descripciones de la edición; [cobertura e idiomas](docs/POKEDEX.md). |
 | Proteger el acceso | Login ES/EN, contraseñas con hash scrypt, sesiones con caducidad, límites de intentos y cierre de sesión sin borrar el banco. |
+
+La aplicación y el login usan una paleta de Poké Ball: rojo, blanco y negro.
 
 ## Inicio rápido
 
@@ -54,10 +57,12 @@ El login protege el acceso web; no cifra IndexedDB ni separa cuentas dentro de u
 
 - Gen I: Amarillo internacional, 32 KiB, 12 cajas y equipo.
 - Gen II: Cristal internacional, 32 KiB, 14 cajas y equipo.
-- Gen III: Rojo Fuego y Esmeralda internacionales, 128 KiB, 14 cajas y equipo.
+- Gen III: Rubí, Zafiro, Esmeralda, Rojo Fuego y Verde Hoja internacionales, 128 KiB, 14 cajas y equipo.
 - Gen IV: Diamante, Perla, Platino, HeartGold y SoulSilver, 512 KiB, 18 cajas y equipo.
 - Gen V: Negro, Blanco, Negro 2 y Blanco 2, 512 KiB, 24 cajas y equipo.
 - DS acepta RAW SAV/SRM y DSV con pie reconocido de 40 o 122 bytes. El archivo completo se conserva. No se admiten ROM hacks, savestates, baterías comprimidas de No$GBA ni colas RTC de GB.
+
+Los textos de Pokédex son referencias incluidas localmente, no extraídas del guardado. La fuente fijada incluye inglés para estas ediciones, pero no español; se indica el idioma y nunca se sustituye por texto de otro juego.
 
 ## Exportación de copias
 
@@ -70,7 +75,8 @@ Todas las operaciones conservan los Pokémon y guardados de origen y producen un
 | III→IV | Parque Compi: PID, ID32, EXP, EVs, IVs, habilidad GenIII, naturaleza, cintas y nombres; procedencia55, fecha explícita, amistad70 y PP GenIV |
 | IV→V | Pokétransfer: PID, IVs, naturaleza, nombres y datos; procedencia30001, fecha explícita, amistad70 y PP GenV |
 | III→V | Cadena III→IV→V |
-| II→III, rutas que atraviesan ese salto y envíos hacia atrás | Bloqueados |
+| Cristal II→III | Conversión personalizada opcional a Rubí/Zafiro/Esmeralda/Rojo Fuego/Verde Hoja; revisión de campos generados y estadísticas adaptadas. [Política y límites](docs/CUSTOM_TRANSFER.md). |
+| Saltos directos II→IV/V y envíos hacia atrás | Bloqueados |
 
 Se bloquean huevos, Pokémon fuera del PC, objetos equipados en origen, destinos en cuarentena, duplicados, casillas ocupadas e idiomas no compatibles. Las conversiones rechazan MO en vez de borrarlas, eventos con fateful, formas no soportadas y recodificaciones con pérdida. La política es conservadora; no es un análisis de legalidad competitiva. No se extraen GTS, guardería, Pokéwalker o caja de combate.
 
@@ -97,7 +103,7 @@ Con Node.js 22 o posterior:
 npm test
 ```
 
-La suite de guardados contiene 62 pruebas y no requiere instalar paquetes. El servidor de acceso tiene 14 pruebas adicionales: instala con `npm --prefix server ci --ignore-scripts` y ejecuta `npm run test:auth`. Los archivos generados van a `.test-output/`. Las comprobaciones se ejecutan localmente; no hay workflows de GitHub Actions. Portainer construye directamente desde Git.
+La suite de guardados contiene 89 pruebas y no requiere instalar paquetes. El servidor de acceso tiene 14 pruebas adicionales: instala con `npm --prefix server ci --ignore-scripts` y ejecuta `npm run test:auth`. Los archivos generados van a `.test-output/`. Las comprobaciones se ejecutan localmente; no hay workflows de GitHub Actions. Portainer construye directamente desde Git.
 
 ## Mapa del proyecto
 
@@ -110,6 +116,7 @@ La suite de guardados contiene 62 pruebas y no requiere instalar paquetes. El se
 | `dist/*data.js` | Tablas de especies, texto y conversión con procedencia documentada. |
 | `dist/styles.css`, `dist/sprites/` | Diseño adaptable y 649 sprites locales. |
 | `tests/` | Pruebas y entidades públicas de referencia. |
+| `dist/pokedex*.js`, `dist/custom-transfer*.js` | Pokédex de solo lectura, descripciones locales y conversión Cristal → GBA con activación explícita. |
 | `server/` | Servidor de acceso, pantalla ES/EN, generador de credenciales y pruebas. |
 | `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `compose.cloud.yaml`, `docker/` | Portainer con Nginx existente, login local y Caddy opcional; configuración Nginx anterior conservada. |
 | `iniciar.py` | Servidor Python limitado a `127.0.0.1`. |

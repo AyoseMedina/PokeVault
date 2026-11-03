@@ -243,6 +243,19 @@ More: [login protections and scope](docs/ACCESS.md#english),
 [Portainer from Git](https://docs.portainer.io/user/docker/stacks/add) and
 [Caddy automatic HTTPS](https://caddyserver.com/docs/automatic-https).
 
+## Pokédex and Crystal → GBA
+
+After signing in, import your saves. **Pokédex** lets you select a save and view
+its actual seen/caught flags and exact-edition descriptions. Descriptions are
+bundled reference data; English is explicitly shown when Spanish is unavailable.
+See [Pokédex](docs/POKEDEX.md#english).
+
+To copy from Crystal to Ruby, Sapphire, Emerald, FireRed or LeafGreen, import
+both saves and choose PC Pokémon. In Transfers, select the GBA destination and
+enable the **custom Crystal → GBA** option. Review generated identity fields,
+DVs/IVs, training and synthetic origin before export. The ZIP keeps both originals.
+See the [custom policy and restrictions](docs/CUSTOM_TRANSFER.md#english).
+
 ## Move your bank
 
 Saves are kept in browser storage. Your local bank is independent of the bank

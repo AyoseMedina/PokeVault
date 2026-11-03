@@ -62,7 +62,7 @@ test('occupied boxes, duplicate identities and repeated selections are blocked',
 });
 test('cross-generation, team Pokémon, eggs, Japanese and demo exports are blocked',()=>{
   const target=gba(),p=picked()[0];
-  assert.throws(()=>prepareTransfer(target,[{...p,generation:2}],0),/No existe intercambio/);
+  assert.throws(()=>prepareTransfer(target,[{...p,generation:2}],0),/conversión personalizada/);
   assert.throws(()=>prepareTransfer(target,[{...p,location:'party'}],0),/Deposita/);
   assert.throws(()=>prepareTransfer(target,[{...p,egg:true}],0),/huevos/);
   assert.throws(()=>prepareTransfer(target,[{...p,language:1}],0),/idiomas/);

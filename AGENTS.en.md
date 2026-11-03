@@ -17,7 +17,7 @@ Main files:
 - `dist/formats.js`: Yellow/DS reading and DS entity encryption.
 - `dist/transfer.js`: routes, conversions and GB/DS copy writing.
 - `dist/data.js`, `formats-data.js`, `transfer-data.js`: tables with documented provenance.
-- `dist/styles.css`: responsive design; preserve the existing visual direction.
+- `dist/styles.css`: responsive design; preserve the user-requested red, white and charcoal Pokémon theme.
 - `tests/`: tests using public entities and synthetic, non-playable saves.
 - `iniciar.py`: local server restricted to 127.0.0.1.
 - `server/`: login, sessions, throttling and ES/EN access resources.
@@ -43,8 +43,10 @@ Main files:
 ## Conversions and compatibility
 
 - Current routes: same generation I–V; I→II; III→IV; IV→V; III→IV→V.
-- II→III and backward transfers are blocked. Do not enable routes without a
-  verified specification and tests of converted data.
+- The user explicitly authorized custom Crystal II→III conversion with review.
+  Follow `docs/CUSTOM_TRANSFER.md`: deterministic generated fields, explicit opt-in,
+  original backups and verified output. Direct II→IV/V and backward routes remain
+  blocked. Other routes need a verified specification and converted-data tests.
 - Do not substitute characters or truncate names to fit. Preserve spaces,
   original names and identity; block lossy conversions.
 - Preserve PID, ID32, experience, DVs/IVs, EVs, ability and ribbons where the

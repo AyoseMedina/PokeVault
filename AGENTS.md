@@ -16,7 +16,7 @@ Archivos principales:
 - `dist/formats.js`: lectura de Amarillo/DS y cifrado de entidades DS.
 - `dist/transfer.js`: rutas, conversiones y escritura de copias en GB y DS.
 - `dist/data.js`, `formats-data.js`, `transfer-data.js`: tablas con procedencia documentada.
-- `dist/styles.css`: diseño adaptable; conservar la dirección visual existente.
+- `dist/styles.css`: diseño adaptable; conservar el tema Pokémon rojo, blanco y negro solicitado por el usuario.
 - `tests/`: pruebas con entidades públicas y guardados sintéticos no jugables.
 - `iniciar.py`: servidor local limitado a 127.0.0.1.
 - `server/`: login, sesiones, limitación de intentos y recursos de acceso ES/EN.
@@ -43,8 +43,11 @@ Archivos principales:
 ## Conversiones y compatibilidad
 
 - Rutas actuales: misma generación I–V; I→II; III→IV; IV→V; III→IV→V.
-- II→III y los envíos hacia atrás están bloqueados. No habilitar rutas sin una
-  especificación comprobada y pruebas de datos convertidos.
+- El usuario autorizó expresamente Cristal II→III personalizada con revisión.
+  Sigue `docs/CUSTOM_TRANSFER.md`: campos generados deterministas, activación
+  explícita, originales respaldados y resultado verificado. II→IV/V directos y
+  envíos hacia atrás siguen bloqueados. Otras rutas necesitan especificación
+  comprobada y pruebas de datos convertidos.
 - No sustituir caracteres ni recortar nombres para hacerlos encajar. Preservar
   espacios, nombres originales e identidad; bloquear conversiones con pérdida.
 - Preservar PID, ID32, experiencia, DVs/IVs, EVs, habilidad y cintas cuando la

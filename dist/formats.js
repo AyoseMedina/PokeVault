@@ -1,7 +1,7 @@
 import { DATA } from './data.js';
 import { FORMAT_DATA as F } from './formats-data.js';
 
-// Read-only importers. No write path exists for Game Boy or Nintendo DS saves.
+// Importers never mutate input. Game Boy and DS copy writers live in transfer.js.
 const dv=b=>new DataView(b.buffer,b.byteOffset,b.byteLength);
 const u16=(b,o)=>dv(b).getUint16(o,true),u32=(b,o)=>dv(b).getUint32(o,true),be16=(b,o)=>dv(b).getUint16(o,false);
 const require=(v,message)=>{if(!v){const e=new Error(message);e.name='SaveError';throw e;}};
@@ -95,7 +95,7 @@ export function parseNDS(input,game,levelFrom){
   const add=(raw,loc)=>{const p=parsePK45(raw,config.generation,loc,levelFrom);if(p)records.push(p);};
   if(config.generation===4){
     const g=selectG4Block(b,0,config.gsize,config.footer,'Datos generales'),s=selectG4Block(b,config.sstart,config.ssize,config.footer,'Cajas del PC');
-    writeInfo={kind:'nds4',storageBase:s.base,storageSize:config.ssize,footer:config.footer,boxStart:config.boxStart,stride:config.stride,hgss:config.family==='hgss'};
+    writeInfo={kind:'nds4',generalBase:g.base,storageBase:s.base,storageSize:config.ssize,footer:config.footer,boxStart:config.boxStart,stride:config.stride,hgss:config.family==='hgss'};
     trainer=decodeDS(g.data.subarray(config.trainer,config.trainer+16),4);tid=u16(g.data,config.trainer+16);
     const current=u32(s.data,config.family==='hgss'?0x12000:0);require(current<18,'Índice de caja DS no válido.');
     for(let box=0;box<18;box++){

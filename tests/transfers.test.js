@@ -81,9 +81,9 @@ test('DSV exports retain their exact original footer and file length',()=>{
 test('duplicate detection works after conversion and with mixed generations',()=>{
  const p=source3(),d=target('platinum'),first=buildTransfer(d,[p],0,opts);assert.throws(()=>buildTransfer({...d,bytes:first.bytes},[p],1,opts),/ya existe/);const converted=finalPK(first,first.placements[0]);assert.equal(entityIdentity(converted),entityIdentity(p));assert.throws(()=>buildTransfer(target('black2'),[p,converted],0,opts),/repetido/);
 });
-test('backward and II→III paths fail; invalid destinations, items, eggs and team are blocked',()=>{
+test('backward and non-opted-in II→III paths fail; invalid destinations, items, eggs and team are blocked',()=>{
  const p3=source3(),p4=sourceDS(4),p5=sourceDS(5);assert.throws(()=>buildTransfer(target('platinum'),[p5],0,opts),/generación anterior/);assert.throws(()=>buildTransfer(target('crystal'),[p3],0,opts),/generación anterior/);
- const p2=parseSave(makeFixtureG2([25]),'crystal').records[0];assert.throws(()=>buildTransfer({game:'emerald',bytes:makeFixtureG3('emerald')},[p2],0,opts),/No existe intercambio/);assert.throws(()=>buildTransfer(target('platinum'),[p2],0,opts),/II → III/);
+ const p2=parseSave(makeFixtureG2([25]),'crystal').records[0];assert.throws(()=>buildTransfer({game:'emerald',bytes:makeFixtureG3('emerald')},[p2],0,opts),/conversión personalizada/);assert.throws(()=>buildTransfer(target('platinum'),[p2],0,opts),/II → III/);
  assert.throws(()=>buildTransfer(target('platinum'),[{...p4,location:'party'}],0,opts),/Deposita/);assert.throws(()=>buildTransfer(target('platinum'),[sourceDS(4,plain=>put32(plain,56,u32(plain,56)|0x40000000))],0,opts),/huevos/);assert.throws(()=>buildTransfer(target('platinum'),[sourceDS(4,plain=>put16(plain,10,1))],0,opts),/objeto equipado/);
 });
 test('forward conversions reject HM, event, destructive glyph and unknown-origin cases',()=>{

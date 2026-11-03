@@ -5,6 +5,29 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Pokédex, Crystal → GBA and Pokémon theme
+
+- Added a read-only per-save Pokédex with actual national seen/caught counts,
+  search, filters, pagination and inconsistent-flag reporting. Uses validated
+  active blocks, never infers captures from PC contents, and leaves saves and
+  the `.pvault` schema unchanged.
+- Bundled exact-edition descriptions in species and Pokémon details, available
+  offline. The pinned source has English but no Spanish for these editions;
+  language is explicit and descriptions are never substituted from another game.
+- Added Ruby, Sapphire and LeafGreen, bringing support to 16 games. Crystal →
+  all five GBA games is an opt-in unofficial custom conversion with documented
+  v1 policy, field review and manifest details. It preserves originals and
+  safeguards, generates deterministic identity, adapts DVs/training and declares
+  synthetic origin metadata. It does not certify competitive legality.
+- Replaced the green palette with Pokémon red, white and charcoal across the
+  application, sign-in, favicon and repository banner; existing features remain.
+- Passed 89 logic/data tests and 14 access tests. Isolated test Chromium verified
+  login, import, Pokédex, detail, selection, prevalidation, custom review, backup,
+  ZIP, reload persistence and mobile layout. Verified original bytes, ZIP CRC,
+  manifest and result SHA-256 in the downloaded package.
+- No personal saves or ROMs were used, and no physical console was validated.
+  The user's Nginx network connection remains under their control.
+
 ## 2026-11-03 · Portainer with existing Nginx
 
 - Added `docker-compose.yml` to build only PokéVault from Git and expose 8080
