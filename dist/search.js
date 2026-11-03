@@ -10,6 +10,7 @@ const ACTIONS = [
   { id: 'saves', label: 'Mis partidas', words: 'partidas guardados archivos sav srm dsv' },
   { id: 'pokedex', label: 'Pokédex', words: 'pokedex especies vistos capturados' },
   { id: 'cards', label: 'Cartas y sobres', words: 'cartas tcg sobres coleccion holo' },
+  { id: 'games', label: 'Juegos', words: 'juegos minijuegos jugar bayas silueta parejas memory lluvia duelo tipos' },
   { id: 'transfers', label: 'Transferencias', words: 'mover intercambio transferir evolucion traslado' },
   { id: 'backups', label: 'Copias de seguridad', words: 'respaldo copia pvault backup versiones restaurar servidor' },
   { id: 'guide', label: 'Guía R36S', words: 'guia ayuda instalar sd arkos retroarch' },

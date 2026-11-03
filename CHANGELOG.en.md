@@ -5,6 +5,14 @@
 These entries document changes made to this project. They are not semantic
 versions and do not guarantee testing on a physical R36S.
 
+## 2026-11-03 · Care, buddy and games (not deployed)
+
+- Care in the detail view: petting, playing and berries; affection hearts and
+  time-based moods; liked flavour from the real nature in Gen III–V.
+- Buddy on the bank page, daily reward with streak and a Games section (silhouette
+  quiz, memory, berry rain, type duel) with berry prizes and records.
+- WikiDex links in the detail view, Pokédex and cards. PokéVault only: no save changes.
+
 ## 2026-11-03 · Global search (not deployed)
 
 - "Buscar" button and **Ctrl+K** / "/" shortcuts. Finds Pokémon by name, nickname,

@@ -27,5 +27,7 @@
 !dist/sprites/animated/*.gif
 !dist/sprites/animated/shiny/
 !dist/sprites/animated/shiny/*.gif
+!dist/sprites/items/
+!dist/sprites/items/*.png
 server/node_modules/
 server/tests/

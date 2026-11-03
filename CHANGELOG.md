@@ -5,6 +5,15 @@
 Las entradas documentan los cambios realizados en este proyecto. No representan
 versiones semánticas ni garantizan pruebas de funcionamiento en una R36S real.
 
+## 2026-11-03 · Cuidados, compañero y juegos (sin despliegue)
+
+- Cuidados en la ficha: acariciar, jugar y dar bayas; cariño con corazones y ánimo
+  según el tiempo. Sabor favorito por naturaleza real en Gen III–V.
+- Compañero en Mi banco, recompensa diaria con racha y sección Juegos: ¿Quién es?,
+  Parejas, Lluvia de bayas y Duelo de tipos, con bayas de premio y récords.
+- Enlaces a WikiDex en la ficha, la Pokédex y las cartas. Todo es solo de
+  PokéVault: no cambia ninguna partida.
+
 ## 2026-11-03 · Buscador global (sin despliegue)
 
 - Botón «Buscar» en la barra superior y atajos **Ctrl+K** y «/». Busca Pokémon por

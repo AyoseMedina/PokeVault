@@ -2,6 +2,7 @@
 // layout conventions (HP top right, attacks, weakness, collector number), without
 // the official TCG frame, logos or energy symbols. h = { esc, img, gameName, dexText }.
 import { geneticsOf, trainingOf } from './cards.js';
+import { wikidexUrl } from './links.js';
 
 export const TYPE_COLORS = {
   1: '#a8a77a', 2: '#c22e28', 3: '#a98ff3', 4: '#a33ea1', 5: '#e2bf65', 6: '#b6a136', 7: '#a6b91a', 8: '#735797', 9: '#b7b7ce',
@@ -34,6 +35,6 @@ export function cardBack(m, p, h) {
       <dl class="tcg-facts"><dt>Entrenador</dt><dd>${h.esc(m.ot || '—')} · ID ${h.esc(m.tid)}</dd><dt>Partida</dt><dd>${h.esc(h.gameName(m.game))}</dd><dt>Ubicación</dt><dd>${h.esc(m.location)}</dd><dt>Tipo</dt><dd>${h.esc(m.typeNames.join(' / '))}</dd></dl>
       ${p.egg ? '' : bars(geneticsOf(p), h) + bars(trainingOf(p), h)}
       <p class="tcg-flavor">${h.esc(h.dexText(m.game, m.species) || '')}</p>
-      <footer class="tcg-foot"><span>PokéVault · carta de tu banco</span><span>Datos del guardado</span></footer>
+      <footer class="tcg-foot"><span>PokéVault · carta de tu banco</span><a href="${wikidexUrl(m.species)}" target="_blank" rel="noopener noreferrer">Más en WikiDex ↗</a></footer>
     </div></div></article>`;
 }

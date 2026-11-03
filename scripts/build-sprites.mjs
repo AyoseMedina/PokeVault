@@ -29,6 +29,10 @@ for (const set of SETS) {
   await mkdir(new URL(`${set.dir}/`, ROOT), { recursive: true });
   for (let id = 1; id <= MAX; id++) jobs.push({ set, id });
 }
+// Berry items used by care and minigames (docs/CARE_GAMES.md).
+const ITEMS = { dir: 'items', remote: id => `../items/${id}.png`, ext: 'png' };
+await mkdir(new URL('items/', ROOT), { recursive: true });
+for (const id of ['cheri-berry', 'chesto-berry', 'pecha-berry', 'rawst-berry', 'aspear-berry', 'oran-berry', 'sitrus-berry']) jobs.push({ set: ITEMS, id });
 let done = 0;
 async function worker() {
   for (let job; (job = jobs.shift());) {
@@ -37,7 +41,7 @@ async function worker() {
     try { bytes = new Uint8Array(await readFile(target)); } catch { bytes = await fetchBytes(set.remote(id)); await writeFile(target, bytes); }
     if (!MAGIC[set.ext].every((b, i) => bytes[i] === b)) throw new Error(`${name}: not a ${set.ext}`);
     manifest.files[name] = createHash('sha256').update(bytes).digest('hex');
-    if (++done % 200 === 0) console.log(`${done}/${SETS.length * MAX}`);
+    if (++done % 200 === 0) console.log(`${done}/${jobs.length + done}`);
   }
 }
 await Promise.all(Array.from({ length: 12 }, worker));

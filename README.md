@@ -38,6 +38,7 @@ SMTP que configures para el correo.
 | Ver a tus Pokémon | Sprites animados de Negro/Blanco y variocolor cuando lo son; estáticos si el sistema pide reducir movimiento. |
 | Mover Pokémon | Salen del origen y entran en el destino, como un intercambio real: evolución por intercambio, objetos, Pokédex del destino y bloqueo del clonado. [Política](docs/MOVE_TRANSFER.md). |
 | Cartas y sobres | Cada Pokémon como carta coleccionable de diseño propio (PS reales, ataques y tabla de tipos de su generación, rareza, holográfica si es variocolor) y sobres que se abren al recibir Pokémon nuevos. [Detalles](docs/CARDS.md). |
+| Cuidados y juegos | Cariño, ánimo y bayas (gusto según su naturaleza real), compañero en la portada, recompensa diaria y minijuegos: ¿Quién es?, Parejas, Lluvia de bayas y Duelo de tipos. Solo en PokéVault: no cambia tus partidas. Enlaces a WikiDex. [Detalles](docs/CARE_GAMES.md). |
 | Animaciones | Viaje de cada Pokémon y su evolución al preparar el paquete; repetibles desde el historial y con ejemplo en la demo. [Detalles](docs/ANIMATIONS.md). |
 | Consultar la Pokédex | Vistos/capturados reales por partida y descripciones: inglés exacto de la edición o español de una edición posterior indicada. [Cobertura](docs/POKEDEX.md). |
 | Banco en el servidor | AES-256-GCM, revisiones con control de conflictos entre dispositivos y 50 versiones restaurables. [Diseño](docs/SERVER_VAULT.md). |
@@ -165,6 +166,7 @@ Actions: Portainer construye directamente desde Git.
 | `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Banco en IndexedDB o en el servidor y respaldos `.pvault`. |
 | `dist/cards*.js`, `dist/packs*.js`, `dist/card-data.js` | Cartas, sobres y sus datos de PokéAPI. |
 | `dist/search.js` | Buscador global. |
+| `dist/care*.js`, `dist/games.js`, `dist/links.js` | Cuidados, compañero, recompensa diaria, minijuegos y enlaces a WikiDex. |
 | `dist/animations.js`, `dist/pokedex*.js` | Animaciones y Pokédex con descripciones locales. |
 | `dist/emulator-convert.js` | Conversor R36S ⇄ Wii, incluido el reloj de Cristal. |
 | `dist/*data.js`, `dist/sprites/` | Tablas con procedencia y sprites 1–649 (estáticos, variocolor y animados). |
@@ -184,7 +186,7 @@ Actions: Portainer construye directamente desde Git.
 | Historial | [Historial](CHANGELOG.md) | [Changelog](CHANGELOG.en.md) |
 | Login y seguridad | [Acceso](docs/ACCESS.md#español) | [Access](docs/ACCESS.md#english) |
 | Banco en el servidor · Cuenta y correo | [SERVER_VAULT](docs/SERVER_VAULT.md) · [ACCOUNT_EMAIL](docs/ACCOUNT_EMAIL.md) | (resumen al final de cada uno) |
-| Mover, objetos, Cristal → GBA, Pokédex, animaciones | [MOVE_TRANSFER](docs/MOVE_TRANSFER.md) · [ITEM_TRANSFER](docs/ITEM_TRANSFER.md) · [CUSTOM_TRANSFER](docs/CUSTOM_TRANSFER.md) · [POKEDEX](docs/POKEDEX.md) · [ANIMATIONS](docs/ANIMATIONS.md) · [CARDS](docs/CARDS.md) | (bilingües o con resumen) |
+| Mover, objetos, Cristal → GBA, Pokédex, animaciones | [MOVE_TRANSFER](docs/MOVE_TRANSFER.md) · [ITEM_TRANSFER](docs/ITEM_TRANSFER.md) · [CUSTOM_TRANSFER](docs/CUSTOM_TRANSFER.md) · [POKEDEX](docs/POKEDEX.md) · [ANIMATIONS](docs/ANIMATIONS.md) · [CARDS](docs/CARDS.md) · [CARE_GAMES](docs/CARE_GAMES.md) | (bilingües o con resumen) |
 | Pruebas y validación | [VALIDATION](docs/VALIDATION.md) | [VALIDATION](docs/VALIDATION.md) |
 | Pautas de desarrollo | [Pautas](AGENTS.md) | [Guidelines](AGENTS.en.md) |
 | Contribuciones y entidades de prueba | [Guía](CONTRIBUTING.md#español) · [Procedencia](tests/fixtures/README.md#español) | [Guide](CONTRIBUTING.md#english) · [Provenance](tests/fixtures/README.md#english) |

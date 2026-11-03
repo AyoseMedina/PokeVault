@@ -137,3 +137,46 @@
 .global-hit strong{display:block}.global-hit em{font-style:normal;color:var(--muted);font-weight:500}.global-hit small{color:var(--muted)}
 .global-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;background:var(--bg);color:var(--green)}
 @media (max-width:760px){.topbar-search{min-width:0;padding:8px}.topbar-search span,.topbar-search kbd{display:none}}
+
+/* Care, buddy and daily reward (docs/CARE_GAMES.md). */
+.care-panel{border:1px solid #efe7e9;border-radius:14px;padding:12px;margin:12px 0;display:grid;gap:8px;background:#fffafb}
+.care-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.hearts{color:#e2425c;letter-spacing:2px}.hearts-off{color:#e8dde0}
+.mood{font-size:12px;font-weight:650;border-radius:999px;padding:2px 9px;background:var(--bg)}.mood-hungry{background:#fff1d6}.mood-bored{background:#e8f1ff}.mood-sleepy{background:#ece8ff}.mood-happy{background:#ffe3ea}
+.care-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.berry-row{display:flex;flex-wrap:wrap;gap:6px}.berry-chip{display:flex;align-items:center;gap:4px;border:1px solid #efe7e9;background:#fff;border-radius:10px;padding:3px 8px 3px 3px;font-weight:700}
+.berry-chip:not(:disabled):hover{border-color:var(--green)}.berry{width:30px;height:30px;image-rendering:pixelated}
+.care-feedback{margin:0;font-weight:600;min-height:1.2em}
+.pk-detail-hero{position:relative}.float-heart{position:absolute;left:calc(65px + var(--x));top:40px;color:#e2425c;font-size:18px;pointer-events:none;animation:pv-heart 1.4s ease-out both}
+.react-loves,.react-likes,.react-pet{animation:pv-hop .5s ease-out 2}.react-play{animation:pv-spin .8s ease-in-out}.react-dislikes{animation:pv-shake .4s ease-in-out 2}.react-full,.react-tired{animation:pv-shake .3s ease-in-out}
+@keyframes pv-heart{0%{opacity:0;transform:translateY(0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translateY(-70px) scale(1.2)}}
+@keyframes pv-hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}}
+@keyframes pv-spin{0%{transform:rotate(0)}50%{transform:rotate(-12deg) scale(1.1)}100%{transform:rotate(0)}}
+@keyframes pv-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.buddy-panel{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}.buddy-empty{grid-template-columns:1fr auto}
+.buddy-sprite{position:relative;border:0;background:radial-gradient(circle,#fff 0,#fbe9ec 70%);border-radius:50%;width:120px;height:120px;display:grid;place-items:center;cursor:pointer}
+.buddy-img{width:96px;height:96px;object-fit:scale-down;image-rendering:pixelated;animation:pv-idle 2.4s ease-in-out infinite}
+.buddy-sprite .float-heart{left:calc(50px + var(--x));top:10px}
+.buddy-info h3{margin:2px 0}.buddy-bubble{position:relative;background:#fff;border:1px solid #efe7e9;border-radius:12px;padding:8px 12px;margin:6px 0 10px;max-width:520px}
+@keyframes pv-idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.buddy-img,.react-loves,.react-likes,.react-pet,.react-play,.react-dislikes,.react-full,.react-tired{animation:none}}
+@media (max-width:560px){.buddy-panel{grid-template-columns:1fr;justify-items:center;text-align:center}.buddy-panel .care-actions{justify-content:center}.buddy-empty{grid-template-columns:1fr}}
+
+/* Minigames (dist/games.js). */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:14px}
+.game-tile{display:grid;gap:6px;text-align:left;border:1px solid #efe7e9;background:#fff;border-radius:16px;padding:16px;cursor:pointer;box-shadow:var(--shadow)}
+.game-tile:hover,.game-tile:focus-visible{border-color:var(--green);transform:translateY(-2px);transition:transform .15s}
+.game-icon{font-size:30px}.game-tile small{color:var(--muted)}.game-tile em{font-style:normal;font-weight:700;color:var(--green)}
+.game-root{display:grid;gap:12px;text-align:center}.game-prize{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font-weight:700}
+.quiz-art{display:grid;place-items:center;min-height:150px;background:radial-gradient(circle,#fff 0,#fbe9ec 70%);border-radius:16px}
+.quiz-sprite{width:140px;height:140px;object-fit:scale-down;image-rendering:pixelated;transition:filter .4s}.quiz-sprite.silhouette{filter:brightness(0)}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quiz-options .correct{background:#dff5e3;border-color:#3c9a4f}.quiz-options .wrong{background:#fde2e5;border-color:var(--green)}
+.memory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:420px;margin:0 auto;width:100%}
+.mem-card{position:relative;aspect-ratio:1;border:0;padding:0;background:none;cursor:pointer;perspective:600px}
+.mem-back,.mem-front{position:absolute;inset:0;border-radius:12px;display:grid;place-items:center;backface-visibility:hidden;transition:transform .35s}
+.mem-back{background:repeating-linear-gradient(45deg,#d8263f 0 10px,#c21f37 10px 20px);border:4px solid #191b22}
+.mem-front{background:#fff;border:2px solid #efe7e9;transform:rotateY(180deg)}.mem-front img{width:80%;image-rendering:pixelated}
+.mem-card.up .mem-back{transform:rotateY(180deg)}.mem-card.up .mem-front{transform:rotateY(0)}.mem-card.done .mem-front{border-color:#3c9a4f;background:#f0fbf2}
+.rain-field{position:relative;height:340px;border-radius:16px;overflow:hidden;background:linear-gradient(#e8f4ff,#fdfbf7);touch-action:none}
+.rain-berry{position:absolute;top:-40px;border:0;background:none;padding:6px;cursor:pointer;animation:pv-fall linear forwards}.rain-berry img{width:36px;height:36px}
+@keyframes pv-fall{to{transform:translateY(400px)}}
+@media (prefers-reduced-motion:reduce){.rain-berry{animation-duration:6s!important}.mem-back,.mem-front{transition:none}}

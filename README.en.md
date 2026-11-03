@@ -39,6 +39,7 @@ documentation are in Spanish and English.
 | See your Pokémon | Black/White animated sprites, shiny when they are; static images when the system asks for reduced motion. |
 | Move Pokémon | They leave the source and enter the destination like a real trade: trade evolution, items, destination Pokédex and clone prevention. [Policy](docs/MOVE_TRANSFER.md). |
 | Cards and packs | Every Pokémon as an original-design trading card (real HP, that generation's moves and type chart, rarity, holographic when shiny) and packs that open when new Pokémon arrive. [Details](docs/CARDS.md). |
+| Care and games | Affection, moods and berries (taste from the real nature), a buddy on the bank page, a daily reward and minigames: silhouette quiz, memory, berry rain and type duel. PokéVault only: saves never change. WikiDex links. [Details](docs/CARE_GAMES.md). |
 | Animations | Each Pokémon's journey and evolution when the package is prepared; replayable from history and shown in the demo. [Details](docs/ANIMATIONS.md). |
 | Pokédex | Real seen/caught flags per save and descriptions: exact English text of the edition, or Spanish from a named later edition. [Coverage](docs/POKEDEX.md). |
 | Server-side bank | AES-256-GCM, revisions with cross-device conflict control and 50 restorable versions. [Design](docs/SERVER_VAULT.md). |
@@ -163,6 +164,7 @@ Portainer builds straight from Git.
 | `dist/vault.js`, `dist/server-vault.js`, `dist/backup.js` | Bank in IndexedDB or on the server and `.pvault` backups. |
 | `dist/cards*.js`, `dist/packs*.js`, `dist/card-data.js` | Cards, packs and their PokéAPI data. |
 | `dist/search.js` | Global search. |
+| `dist/care*.js`, `dist/games.js`, `dist/links.js` | Care, buddy, daily reward, minigames and WikiDex links. |
 | `dist/animations.js`, `dist/pokedex*.js` | Animations and Pokédex with local descriptions. |
 | `dist/emulator-convert.js` | R36S ⇄ Wii converter, including the Crystal clock. |
 | `dist/*data.js`, `dist/sprites/` | Tables with provenance and sprites 1–649 (static, shiny and animated). |
@@ -182,7 +184,7 @@ Portainer builds straight from Git.
 | Changelog | [Historial](CHANGELOG.md) | [Changelog](CHANGELOG.en.md) |
 | Sign-in and security | [Acceso](docs/ACCESS.md#español) | [Access](docs/ACCESS.md#english) |
 | Server bank · Account and email | [SERVER_VAULT](docs/SERVER_VAULT.md) · [ACCOUNT_EMAIL](docs/ACCOUNT_EMAIL.md) | (summary at the end of each) |
-| Moves, items, Crystal → GBA, Pokédex, animations | [MOVE_TRANSFER](docs/MOVE_TRANSFER.md) · [ITEM_TRANSFER](docs/ITEM_TRANSFER.md) · [CUSTOM_TRANSFER](docs/CUSTOM_TRANSFER.md) · [POKEDEX](docs/POKEDEX.md) · [ANIMATIONS](docs/ANIMATIONS.md) · [CARDS](docs/CARDS.md) | (bilingual or with summary) |
+| Moves, items, Crystal → GBA, Pokédex, animations | [MOVE_TRANSFER](docs/MOVE_TRANSFER.md) · [ITEM_TRANSFER](docs/ITEM_TRANSFER.md) · [CUSTOM_TRANSFER](docs/CUSTOM_TRANSFER.md) · [POKEDEX](docs/POKEDEX.md) · [ANIMATIONS](docs/ANIMATIONS.md) · [CARDS](docs/CARDS.md) · [CARE_GAMES](docs/CARE_GAMES.md) | (bilingual or with summary) |
 | Tests and validation | [VALIDATION](docs/VALIDATION.md) | [VALIDATION](docs/VALIDATION.md) |
 | Development guidelines | [Pautas](AGENTS.md) | [Guidelines](AGENTS.en.md) |
 | Contributing and test entities | [Guía](CONTRIBUTING.md#español) · [Procedencia](tests/fixtures/README.md#español) | [Guide](CONTRIBUTING.md#english) · [Provenance](tests/fixtures/README.md#english) |

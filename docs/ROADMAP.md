@@ -19,7 +19,7 @@ Orden previsto: modo mover (`MOVE_TRANSFER.md`) → cuenta y correo
   Posibles extras: voltear la carta para ver estadísticas calculadas, filtros,
   «álbum» por Pokédex y exportar una carta como imagen local.
 
-### Interactuar con los Pokémon
+### Interactuar con los Pokémon — implementado (2026-11-03, [CARE_GAMES.md](CARE_GAMES.md))
 
 - Interacciones cosméticas dentro del banco (por ejemplo, acariciar, reacciones
   o un diario de recuerdos).
